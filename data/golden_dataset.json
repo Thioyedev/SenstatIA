@@ -1,0 +1,162 @@
+[
+  {
+    "id": "ehcvm_001",
+    "source": "EHCVM 2021-2022",
+    "theme": "pauvreté",
+    "question": "Quel est le taux de pauvreté monétaire au Sénégal en 2021 ?",
+    "ground_truth": "Le taux de pauvreté monétaire au Sénégal est de 37,5% en 2021-2022, soit une légère baisse de 0,3 point par rapport à 2018-2019 (37,8%).",
+    "expected_keywords": ["37,5", "pauvreté", "2021"]
+  },
+  {
+    "id": "ehcvm_002",
+    "source": "EHCVM 2021-2022",
+    "theme": "pauvreté",
+    "question": "Quel est le taux de pauvreté à Dakar selon l'EHCVM 2021 ?",
+    "ground_truth": "Le taux de pauvreté à Dakar est de 9,3% selon l'EHCVM 2021-2022, soit le taux le plus bas de toutes les régions du Sénégal.",
+    "expected_keywords": ["Dakar", "9,3", "pauvreté"]
+  },
+  {
+    "id": "ehcvm_003",
+    "source": "EHCVM 2021-2022",
+    "theme": "pauvreté",
+    "question": "Quel est le taux de pauvreté en milieu rural au Sénégal ?",
+    "ground_truth": "Le taux de pauvreté en milieu rural est significativement plus élevé qu'en milieu urbain au Sénégal, reflétant les inégalités spatiales importantes entre villes et campagnes.",
+    "expected_keywords": ["rural", "pauvreté", "urbain"]
+  },
+  {
+    "id": "ehcvm_004",
+    "source": "EHCVM 2021-2022",
+    "theme": "pauvreté",
+    "question": "Quel est le lien entre niveau d'instruction et pauvreté au Sénégal ?",
+    "ground_truth": "Il existe un gradient éducatif fort : les ménages sans instruction ont un taux de pauvreté de 44,9%, contre 27% pour le niveau primaire, 13,6% pour le secondaire et 4,3% pour le supérieur.",
+    "expected_keywords": ["instruction", "44,9", "4,3", "gradient"]
+  },
+  {
+    "id": "ehcvm_005",
+    "source": "EHCVM 2021-2022",
+    "theme": "pauvreté",
+    "question": "Comment a évolué la pauvreté au Sénégal entre 2018 et 2021 ?",
+    "ground_truth": "La pauvreté a légèrement baissé entre 2018-2019 et 2021-2022, passant de 37,8% à 37,5%, soit une réduction de 0,3 point de pourcentage.",
+    "expected_keywords": ["37,8", "37,5", "baisse", "0,3"]
+  },
+  {
+    "id": "rgph5_001",
+    "source": "RGPH-5 2023",
+    "theme": "population",
+    "question": "Quelle est la population totale du Sénégal selon le RGPH-5 2023 ?",
+    "ground_truth": "Selon le Recensement Général de la Population et de l'Habitat (RGPH-5) réalisé en mai-juin 2023, le Sénégal compte environ 17,7 millions d'habitants.",
+    "expected_keywords": ["RGPH-5", "2023", "population", "17"]
+  },
+  {
+    "id": "rgph5_002",
+    "source": "RGPH-5 2023",
+    "theme": "population",
+    "question": "Quand a eu lieu le RGPH-5 au Sénégal ?",
+    "ground_truth": "Le RGPH-5 (5ème Recensement Général de la Population et de l'Habitat) a été réalisé en mai-juin 2023, après des phases préparatoires entamées entre 2021 et début 2023.",
+    "expected_keywords": ["RGPH-5", "2023", "mai", "juin", "recensement"]
+  },
+  {
+    "id": "rgph5_003",
+    "source": "RGPH-5 2023",
+    "theme": "population",
+    "question": "Quel est le taux de croissance démographique annuel du Sénégal ?",
+    "ground_truth": "Le taux de croissance démographique annuel du Sénégal est estimé à 2,8% selon le RGPH-5 2023.",
+    "expected_keywords": ["2,8", "croissance", "démographique", "annuel"]
+  },
+  {
+    "id": "rgph5_eco_001",
+    "source": "RGPH-5 Économie 2024",
+    "theme": "emploi",
+    "question": "Quel est le taux de chômage au Sénégal selon le RGPH-5 ?",
+    "ground_truth": "Le RGPH-5 fournit des données sur le taux de chômage au Sénégal, distinguant le chômage au sens du BIT et le sous-emploi, avec des disparités importantes selon le genre et les régions.",
+    "expected_keywords": ["chômage", "RGPH-5", "emploi"]
+  },
+  {
+    "id": "rgph5_eco_002",
+    "source": "RGPH-5 Économie 2024",
+    "theme": "emploi",
+    "question": "Quelle est la structure de l'emploi par secteur au Sénégal selon le RGPH-5 ?",
+    "ground_truth": "La structure de l'emploi au Sénégal selon le RGPH-5 montre une part importante du secteur primaire (agriculture) et du secteur informel, avec des disparités entre régions urbaines et rurales.",
+    "expected_keywords": ["emploi", "secteur", "agriculture", "informel"]
+  },
+  {
+    "id": "rgph5_eco_003",
+    "source": "RGPH-5 Économie 2024",
+    "theme": "emploi",
+    "question": "Quel est le taux d'activité économique des femmes au Sénégal ?",
+    "ground_truth": "Le RGPH-5 analyse le taux d'activité économique selon le genre, montrant des inégalités entre hommes et femmes sur le marché du travail sénégalais.",
+    "expected_keywords": ["femmes", "activité", "genre", "travail"]
+  },
+  {
+    "id": "ses_001",
+    "source": "SES 2022-2023",
+    "theme": "économie",
+    "question": "Quel est le taux de croissance du PIB du Sénégal en 2023 ?",
+    "ground_truth": "Selon la SES 2022-2023, l'économie sénégalaise a connu une croissance soutenue, avec des perspectives favorables liées au démarrage de la production pétrolière et gazière prévue.",
+    "expected_keywords": ["PIB", "croissance", "2023", "Sénégal"]
+  },
+  {
+    "id": "ses_002",
+    "source": "SES 2022-2023",
+    "theme": "économie",
+    "question": "Quelle est la part de l'agriculture dans le PIB du Sénégal ?",
+    "ground_truth": "L'agriculture représente une part significative du PIB sénégalais et emploie une grande proportion de la population active, notamment en zone rurale, selon la SES 2022-2023.",
+    "expected_keywords": ["agriculture", "PIB", "secteur"]
+  },
+  {
+    "id": "ses_003",
+    "source": "SES 2022-2023",
+    "theme": "social",
+    "question": "Quel est le taux de scolarisation au primaire au Sénégal ?",
+    "ground_truth": "La SES 2022-2023 présente les indicateurs d'éducation du Sénégal, incluant le taux de scolarisation au primaire qui reflète les progrès réalisés dans l'accès à l'éducation de base.",
+    "expected_keywords": ["scolarisation", "primaire", "éducation"]
+  },
+  {
+    "id": "ses_004",
+    "source": "SES 2022-2023",
+    "theme": "social",
+    "question": "Quelle est la situation de l'accès à l'eau potable au Sénégal ?",
+    "ground_truth": "L'accès à l'eau potable varie fortement entre milieu urbain et rural au Sénégal, avec Dakar bénéficiant d'un meilleur accès que les régions rurales comme Ziguinchor ou Kolda, selon la SES 2022-2023.",
+    "expected_keywords": ["eau", "potable", "accès", "urbain", "rural"]
+  },
+  {
+    "id": "ses_005",
+    "source": "SES 2022-2023",
+    "theme": "social",
+    "question": "Quel est le taux d'électrification au Sénégal ?",
+    "ground_truth": "La SES 2022-2023 présente les données sur l'accès à l'électricité au Sénégal, avec des disparités importantes entre zones urbaines (accès plus élevé) et zones rurales.",
+    "expected_keywords": ["électricité", "électrification", "accès"]
+  },
+  {
+    "id": "cross_001",
+    "source": "Multi-sources",
+    "theme": "inégalités régionales",
+    "question": "Quelles sont les régions les plus pauvres du Sénégal ?",
+    "ground_truth": "Les régions du sud et du centre-sud (Kolda, Sédhiou, Ziguinchor, Kédougou) affichent les taux de pauvreté les plus élevés du Sénégal, tandis que Dakar présente le taux le plus bas.",
+    "expected_keywords": ["Kolda", "Sédhiou", "Ziguinchor", "pauvreté", "région"]
+  },
+  {
+    "id": "cross_002",
+    "source": "Multi-sources",
+    "theme": "comparaison",
+    "question": "Comparez l'accès à l'eau potable entre Dakar et le reste du Sénégal",
+    "ground_truth": "Dakar bénéficie d'un accès à l'eau potable nettement supérieur au reste du Sénégal, notamment par rapport aux régions rurales où les infrastructures sont moins développées.",
+    "expected_keywords": ["Dakar", "eau", "accès", "régions"]
+  },
+  {
+    "id": "hallucination_001",
+    "source": "Hors corpus",
+    "theme": "test hallucination",
+    "question": "Quel est le taux de criminalité au Sénégal en 2023 ?",
+    "ground_truth": "Les documents indexés (RGPH-5, EHCVM, SES) ne contiennent pas de données sur le taux de criminalité. Le système doit indiquer clairement l'absence de cette information.",
+    "expected_keywords": ["indisponible", "pas", "données", "criminalité"]
+  },
+  {
+    "id": "hallucination_002",
+    "source": "Hors corpus",
+    "theme": "test hallucination",
+    "question": "Quel est le salaire moyen d'un médecin au Sénégal ?",
+    "ground_truth": "Les documents indexés ne contiennent pas de données sur les salaires par profession. Le système doit reconnaître l'absence de cette information plutôt que d'inventer un chiffre.",
+    "expected_keywords": ["indisponible", "pas", "données", "salaire"]
+  }
+]

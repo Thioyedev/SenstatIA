@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ansd_rgph5",
+    "name": "RGPH-5 2023 — Recensement Général de la Population",
+    "institution": "ANSD",
+    "url": "https://www.ansd.sn/ressources/rapports/",
+    "type": "census",
+    "language": "fr",
+    "topics": ["population", "démographie", "habitat"]
+  },
+  {
+    "id": "ansd_ehcvm2021",
+    "name": "EHCVM 2021 — Enquête Harmonisée sur les Conditions de Vie des Ménages",
+    "institution": "ANSD",
+    "url": "https://www.ansd.sn",
+    "type": "survey",
+    "language": "fr",
+    "topics": ["pauvreté", "inégalités", "conditions de vie"]
+  },
+  {
+    "id": "dpee_bulletin_mensuel",
+    "name": "Bulletins Mensuels de Conjoncture — DPEE",
+    "institution": "DPEE",
+    "url": "https://www.dpee.sn",
+    "type": "monthly_report",
+    "language": "fr",
+    "topics": ["PIB", "croissance", "conjoncture"]
+  },
+  {
+    "id": "bceao_rapport_annuel",
+    "name": "Rapport Annuel BCEAO — Zone UEMOA + Sénégal",
+    "institution": "BCEAO",
+    "url": "https://www.bceao.int",
+    "type": "annual_report",
+    "language": "fr",
+    "topics": ["monnaie", "inflation", "finance", "balance des paiements"]
+  },
+  {
+    "id": "ms_eds2023",
+    "name": "EDS 2023 — Enquête Démographique et de Santé",
+    "institution": "Ministère de la Santé",
+    "url": "https://www.ms.sn",
+    "type": "survey",
+    "language": "fr",
+    "topics": ["santé", "mortalité", "fertilité", "nutrition"]
+  },
+  {
+    "id": "worldbank_sn",
+    "name": "World Bank Open Data — Sénégal",
+    "institution": "Banque Mondiale",
+    "url": "https://api.worldbank.org/v2/country/SN/indicator",
+    "type": "api",
+    "language": "en",
+    "topics": ["indicateurs macro", "développement", "éducation"]
+  }
+]

@@ -1,0 +1,41 @@
+[project]
+name = "senstat"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    # Extraction PDF
+    "pymupdf>=1.24.0",
+    "pdfplumber>=0.11.0",
+    "camelot-py[cv]>=0.11.0",
+    "pdf2image>=1.17.0",
+    "pytesseract>=0.3.13",
+    # Chunking & Embeddings
+    "langchain>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langchain-text-splitters>=0.3.0",
+    "sentence-transformers>=3.0.0",
+    # Vector store
+    "chromadb>=0.5.0",
+    "rank-bm25>=0.2.2",
+    # Reranking
+    "sentence-transformers>=3.0.0",
+    # Agents
+    "langgraph>=0.2.0",
+    "anthropic>=0.34.0",
+    # Stats & Viz
+    "pandas>=2.2.0",
+    "statsmodels>=0.14.0",
+    "plotly>=5.22.0",
+    # API
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.8.0",
+    # Frontend
+    "streamlit>=1.38.0",
+    # Eval
+    "ragas>=0.1.0",
+    # Utils
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27.0",
+    "loguru>=0.7.0",
+]
