@@ -6,8 +6,10 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 data/chroma/
-data/raw/
-data/processed/
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
 notebooks/.ipynb_checkpoints/
 .DS_Store
 *.swo
