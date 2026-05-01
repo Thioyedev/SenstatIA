@@ -18,7 +18,8 @@ st.set_page_config(
 inject_css()
 sidebar_brand()
 
-API_URL = "http://localhost:8000"
+import os
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 SUGGESTIONS = {
     "Population":  "Quelle est la population totale du Sénégal en 2023 ?",

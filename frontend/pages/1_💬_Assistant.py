@@ -19,7 +19,8 @@ st.set_page_config(
 inject_css()
 sidebar_brand()
 
-API_URL = "http://localhost:8000"
+import os
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 INTENT_LABELS = {
     "lookup":  ("🔎", "Recherche ponctuelle"),
