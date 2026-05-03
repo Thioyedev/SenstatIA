@@ -15,6 +15,12 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 footer              { visibility: hidden; }
 header              { visibility: hidden; }
 
+/* Keep sidebar toggle visible when sidebar is collapsed */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"]           { visibility: visible !important; }
+header[data-testid="stHeader"]             { visibility: visible !important; background: transparent !important; }
+[data-testid="stToolbar"]                  { visibility: hidden; }
+
 /* ── Sidebar ──────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #004d24 0%, #003018 100%);
