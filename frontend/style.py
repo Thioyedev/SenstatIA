@@ -11,14 +11,24 @@ CSS = """
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 /* ── Hide ugly Streamlit defaults ─────────────────────────── */
-#MainMenu           { visibility: hidden; }
-footer              { visibility: hidden; }
-header              { visibility: hidden; }
+#MainMenu                        { visibility: hidden; }
+footer                           { visibility: hidden; }
+[data-testid="stToolbar"]        { visibility: hidden; }
+[data-testid="stDecoration"]     { display: none; }
 
-/* Remove sidebar collapse button — keep nav always visible */
-[data-testid="stSidebarCollapseButton"]    { display: none !important; }
-[data-testid="stSidebarCollapsedControl"]  { display: none !important; }
-[data-testid="collapsedControl"]           { display: none !important; }
+/* Transparent header — keeps sidebar toggle functional */
+[data-testid="stHeader"] {
+    background: transparent !important;
+    border-bottom: none !important;
+}
+
+/* Sidebar toggle always visible */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
 /* ── Sidebar ──────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
