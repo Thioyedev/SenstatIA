@@ -50,37 +50,57 @@ footer                           { visibility: hidden; }
     font-size: 1.1rem !important;
 }
 
-/* ── Sidebar ──────────────────────────────────────────────── */
+/* ── Sidebar — Claude style ───────────────────────────────── */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #004d24 0%, #003018 100%);
+    background: #171717 !important;
     border-right: 1px solid rgba(255,255,255,0.06);
 }
-[data-testid="stSidebar"] * { color: #d4edda !important; }
-[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.10) !important; }
+[data-testid="stSidebar"] * { color: #ececec !important; }
+[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.08) !important; }
 
 /* Nav items */
-[data-testid="stSidebarNav"] {
-    padding-top: 0;
-}
+[data-testid="stSidebarNav"] { padding-top: 0; }
 [data-testid="stSidebarNav"] a {
     border-radius: 8px;
     margin: 1px 8px;
     padding: 7px 12px;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 500;
     transition: background 0.15s;
-    color: rgba(255,255,255,0.82) !important;
+    color: rgba(255,255,255,0.72) !important;
 }
 [data-testid="stSidebarNav"] a:hover {
-    background: rgba(255,255,255,0.10) !important;
+    background: rgba(255,255,255,0.08) !important;
     color: white !important;
 }
 [data-testid="stSidebarNav"] a[aria-selected="true"] {
-    background: rgba(255,255,255,0.16) !important;
+    background: rgba(255,255,255,0.12) !important;
     color: white !important;
     font-weight: 600;
-    border-left: 3px solid #FDEF42;
-    padding-left: 9px;
+}
+
+/* Chat history items in sidebar */
+.conv-item {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.12s;
+    margin: 1px 0;
+}
+.conv-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.conv-item.active { background: rgba(255,255,255,0.12); color: white; }
+.conv-group-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35) !important;
+    padding: 12px 12px 4px 12px;
 }
 
 /* ── App background ───────────────────────────────────────── */
@@ -338,16 +358,11 @@ def inject_css():
 
 def sidebar_brand():
     st.sidebar.markdown("""
-<div style="padding: 20px 16px 12px 16px; text-align: center;">
-    <div style="font-size: 2rem; line-height: 1;">📊</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: white; margin-top: 6px; letter-spacing: 0.3px;">
-        SenStat
-    </div>
-    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 3px;">
-        Intelligence Statistique · Sénégal
-    </div>
+<div style="padding: 16px 12px 10px 12px; display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 1.3rem;">📊</span>
+    <span style="font-size: 1rem; font-weight: 700; color: white; letter-spacing: 0.2px;">SenStat</span>
 </div>
-<hr style="border-color: rgba(255,255,255,0.10); margin: 0 16px 8px 16px;">
+<hr style="border-color: rgba(255,255,255,0.08); margin: 0 12px 6px 12px;">
 """, unsafe_allow_html=True)
 
 

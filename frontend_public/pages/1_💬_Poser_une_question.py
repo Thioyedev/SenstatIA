@@ -5,8 +5,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
-import streamlit as st
+import os
+import uuid
 import httpx
+import streamlit as st
+from datetime import datetime
 from frontend_public.style_public import inject_css, sidebar_brand, section_lbl
 
 st.set_page_config(
@@ -16,9 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_css()
-sidebar_brand()
 
-import os
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 SUGGESTIONS = {
@@ -30,10 +31,71 @@ SUGGESTIONS = {
     "Agriculture": "Quelle est la part de l'agriculture dans le PIB sénégalais ?",
 }
 
-if "pub_messages"       not in st.session_state: st.session_state.pub_messages       = []
-if "pub_last_citations" not in st.session_state: st.session_state.pub_last_citations = []
+# ── Conversation state ─────────────────────────────────────────────────────────
+def new_conversation():
+    cid = str(uuid.uuid4())
+    st.session_state.pub_conversations[cid] = {
+        "title": "Nouvelle conversation",
+        "messages": [],
+        "citations": [],
+        "timestamp": datetime.now(),
+    }
+    st.session_state.pub_current_id = cid
 
-# ── Header ──────────────────────────────────────────────────────────────────────
+if "pub_conversations" not in st.session_state:
+    st.session_state.pub_conversations = {}
+    new_conversation()
+
+if "pub_current_id" not in st.session_state or \
+        st.session_state.pub_current_id not in st.session_state.pub_conversations:
+    new_conversation()
+
+cid  = st.session_state.pub_current_id
+conv = st.session_state.pub_conversations[cid]
+
+# ── Sidebar ────────────────────────────────────────────────────────────────────
+sidebar_brand()
+
+if st.sidebar.button("✏️  Nouvelle conversation", use_container_width=True):
+    new_conversation()
+    st.rerun()
+
+st.sidebar.markdown("<hr style='border-color:rgba(255,255,255,0.08);margin:8px 12px;'>",
+                    unsafe_allow_html=True)
+
+today = datetime.now().date()
+today_convs = []
+older_convs = []
+for c_id, c in reversed(list(st.session_state.pub_conversations.items())):
+    if c["timestamp"].date() == today:
+        today_convs.append((c_id, c))
+    else:
+        older_convs.append((c_id, c))
+
+def render_conv_list(items):
+    for c_id, c in items:
+        label = c["title"][:38] + "…" if len(c["title"]) > 38 else c["title"]
+        active = c_id == st.session_state.pub_current_id
+        if st.sidebar.button(
+            label,
+            key=f"pub_conv_{c_id}",
+            use_container_width=True,
+            type="primary" if active else "secondary",
+        ):
+            st.session_state.pub_current_id = c_id
+            st.rerun()
+
+if today_convs:
+    st.sidebar.markdown("<div class='conv-group-label'>Aujourd'hui</div>",
+                        unsafe_allow_html=True)
+    render_conv_list(today_convs)
+
+if older_convs:
+    st.sidebar.markdown("<div class='conv-group-label'>Précédentes</div>",
+                        unsafe_allow_html=True)
+    render_conv_list(older_convs)
+
+# ── Header ─────────────────────────────────────────────────────────────────────
 st.markdown("<h2 style='margin-bottom:4px;'>💬 Posez votre question</h2>",
             unsafe_allow_html=True)
 st.caption("Nos réponses sont tirées exclusivement des rapports officiels du Sénégal.")
@@ -43,10 +105,8 @@ col_main, col_side = st.columns([3, 1], gap="large")
 
 # ══ MAIN COLUMN ════════════════════════════════════════════════════════════════
 with col_main:
-    # Suggestions rapides
     theme_query = st.session_state.pop("theme_query", None)
     if theme_query and theme_query in SUGGESTIONS:
-        st.session_state.pub_messages = []
         st.session_state["pub_prefill"] = SUGGESTIONS[theme_query]
 
     section_lbl("Questions fréquentes — cliquez pour obtenir une réponse")
@@ -66,28 +126,29 @@ with col_main:
 
     st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
-    # Message history
-    if not st.session_state.pub_messages:
+    if not conv["messages"]:
         st.markdown("""
-<div style="text-align:center; padding:32px; color:#bbb;">
-    <div style="font-size:2.5rem; margin-bottom:10px;">🇸🇳</div>
-    <div style="font-size:0.95rem; color:#aaa;">
+<div style="text-align:center;padding:32px;color:#bbb;">
+    <div style="font-size:2.5rem;margin-bottom:10px;">🇸🇳</div>
+    <div style="font-size:0.95rem;color:#aaa;">
         Posez votre question ci-dessous ou choisissez un exemple.
     </div>
 </div>
 """, unsafe_allow_html=True)
     else:
-        for msg in st.session_state.pub_messages:
+        for msg in conv["messages"]:
             avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
             with st.chat_message(msg["role"], avatar=avatar):
                 st.markdown(msg["content"])
 
-    # Input
     prefill = st.session_state.pop("pub_prefill", None)
     prompt  = st.chat_input("Ex : Quel est le taux de pauvreté au Sénégal ?") or prefill
 
     if prompt:
-        st.session_state.pub_messages.append({"role": "user", "content": prompt})
+        if conv["title"] == "Nouvelle conversation":
+            conv["title"] = prompt[:50]
+
+        conv["messages"].append({"role": "user", "content": prompt})
 
         with st.chat_message("user", avatar="🧑"):
             st.markdown(prompt)
@@ -101,13 +162,12 @@ with col_main:
                     data      = resp.json()
                     answer    = data["answer"]
                     citations = data.get("citations", [])
-                except Exception as e:
+                except Exception:
                     answer    = "⚠️ Le service est momentanément indisponible. Réessayez dans quelques instants."
                     citations = []
 
             st.markdown(answer)
 
-            # Sources en bas de réponse — format grand public
             if citations:
                 st.markdown("<br>", unsafe_allow_html=True)
                 pills = ""
@@ -115,15 +175,15 @@ with col_main:
                     pills += f'<span class="source-pill">📎 {c.get("institution","?")} — {c.get("report_name","?")} (p.{c.get("page","?")})</span>'
                 st.markdown(f'<div>{pills}</div>', unsafe_allow_html=True)
 
-        st.session_state.pub_messages.append({"role": "assistant", "content": answer})
-        st.session_state.pub_last_citations = citations
+        conv["messages"].append({"role": "assistant", "content": answer})
+        conv["citations"] = citations
         st.rerun()
 
 # ══ SIDE COLUMN ════════════════════════════════════════════════════════════════
 with col_side:
     st.markdown("#### 📎 Sources utilisées")
+    citations = conv.get("citations", [])
 
-    citations = st.session_state.get("pub_last_citations", [])
     if not citations:
         st.markdown("""
 <div style="background:white;border-radius:12px;padding:16px;text-align:center;
@@ -135,7 +195,8 @@ with col_side:
         seen = set()
         for c in citations:
             key = c.get("source_id")
-            if key in seen: continue
+            if key in seen:
+                continue
             seen.add(key)
             st.markdown(f"""
 <div style="background:white;border-radius:10px;padding:12px 14px;margin:6px 0;
@@ -147,18 +208,15 @@ with col_side:
 """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     st.markdown("""
 <div style="background:#F0FFF4;border-radius:10px;padding:14px;font-size:0.78rem;color:#2D6A4F;">
     <strong>✅ Données vérifiées</strong><br><br>
     Toutes les réponses proviennent uniquement des rapports officiels de l'ANSD, DPEE et BCEAO.
-    Aucune information n'est inventée.
 </div>
 """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.session_state.pub_messages:
+    if conv["messages"]:
         if st.button("🔄 Nouvelle conversation", use_container_width=True):
-            st.session_state.pub_messages       = []
-            st.session_state.pub_last_citations = []
+            new_conversation()
             st.rerun()
