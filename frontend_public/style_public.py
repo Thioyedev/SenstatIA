@@ -251,29 +251,64 @@ footer                           { visibility: hidden; }
 
 /* ── Buttons ──────────────────────────────────────────────── */
 .stButton > button {
-    border-radius: 10px;
+    border-radius: 20px;
     font-weight: 500;
-    font-size: 0.88rem;
-    padding: 8px 16px;
+    font-size: 0.84rem;
+    padding: 7px 16px;
     transition: all 0.15s;
     border: 1.5px solid #e0e0e0;
     background: white;
-    color: #1A1A1A;
+    color: #333;
+    text-align: left;
 }
 .stButton > button:hover {
     border-color: #00853F;
     color: #00853F;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0,133,63,0.15);
+    background: #F0FFF4;
+    box-shadow: 0 2px 8px rgba(0,133,63,0.12);
 }
 
 /* ── Section label ────────────────────────────────────────── */
 .section-lbl {
-    font-size: 0.7rem; font-weight: 700;
+    font-size: 0.68rem; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
-    color: #999; margin: 24px 0 12px 0;
+    color: #aaa; margin: 0 0 10px 0;
 }
-.divider { border: none; border-top: 1px solid #E8E8E8; margin: 20px 0; }
+.divider { border: none; border-top: 1px solid #E8E8E8; margin: 16px 0; }
+
+/* ── Page banner ──────────────────────────────────────────── */
+.page-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    border-left: 4px solid #00853F;
+}
+.page-banner-icon { font-size: 1.9rem; line-height: 1; }
+.page-banner-title { font-size: 1.15rem; font-weight: 700; color: #1A1A2E; margin-bottom: 2px; }
+.page-banner-sub { font-size: 0.79rem; color: #777; line-height: 1.4; }
+
+/* ── Hide Streamlit header anchor icons ───────────────────── */
+h1 a, h2 a, h3 a { display: none !important; }
+
+/* ── Inline source pill ───────────────────────────────────── */
+.source-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #F0FFF4;
+    border: 1px solid #C6F6D5;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    color: #2D6A4F;
+    font-weight: 500;
+    margin: 2px 3px 0 0;
+}
 </style>
 """
 
