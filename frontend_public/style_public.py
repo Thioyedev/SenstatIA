@@ -231,6 +231,15 @@ footer                           { visibility: hidden; }
     margin: 3px 3px 0 0;
 }
 
+/* ── Sticky chat input ────────────────────────────────────── */
+[data-testid="stBottom"] {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 99 !important;
+    background: #F5F7FA !important;
+    padding: 8px 0 12px 0 !important;
+}
+
 /* ── Chat ─────────────────────────────────────────────────── */
 [data-testid="stChatMessage"] {
     background: white !important;

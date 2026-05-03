@@ -208,6 +208,15 @@ h1 a, h2 a, h3 a { display: none !important; }
     border-radius: 8px !important;
 }
 
+/* Sticky chat input */
+[data-testid="stBottom"] {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 99 !important;
+    background: #EDEEF2 !important;
+    padding: 8px 0 12px 0 !important;
+}
+
 /* Chat input */
 [data-testid="stChatInput"] > div {
     border: 1.5px solid #ddd !important;
