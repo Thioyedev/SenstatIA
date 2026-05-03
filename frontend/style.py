@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 SENEGAL_GREEN  = "#00853F"
 SENEGAL_YELLOW = "#FDEF42"
@@ -355,41 +356,53 @@ footer                           { visibility: hidden; }
 """
 
 
-SIDEBAR_JS = """
+_SIDEBAR_JS = """
 <script>
 (function() {
-    var ID = 'senstat-sidebar-tab';
+    /* Access parent Streamlit document from this iframe */
+    var doc = window.parent.document;
+    var ID  = 'senstat-sidebar-tab';
+
     function make() {
-        var btn = document.createElement('button');
-        btn.id = ID;
+        if (doc.getElementById(ID)) return doc.getElementById(ID);
+        var btn = doc.createElement('button');
+        btn.id    = ID;
         btn.title = 'Ouvrir la sidebar';
-        /* panel-left icon */
-        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>';
-        btn.style.cssText = 'position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:2147483647;background:#171717;border:none;border-radius:0 8px 8px 0;width:28px;height:52px;cursor:pointer;align-items:center;justify-content:center;box-shadow:3px 0 14px rgba(0,0,0,0.55);padding:0;outline:none;display:none;';
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" '
+            + 'viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" '
+            + 'stroke-linecap="round" stroke-linejoin="round">'
+            + '<rect x="3" y="3" width="18" height="18" rx="2"/>'
+            + '<line x1="9" y1="3" x2="9" y2="21"/></svg>';
+        btn.style.cssText = [
+            'position:fixed', 'left:0', 'top:50%', 'transform:translateY(-50%)',
+            'z-index:2147483647', 'background:#171717', 'border:none',
+            'border-radius:0 8px 8px 0', 'width:28px', 'height:52px',
+            'cursor:pointer', 'display:none', 'align-items:center',
+            'justify-content:center', 'box-shadow:3px 0 14px rgba(0,0,0,0.6)',
+            'padding:0', 'outline:none'
+        ].join(';');
         btn.onmouseenter = function() { btn.style.background = '#2a2a2a'; };
         btn.onmouseleave = function() { btn.style.background = '#171717'; };
         btn.onclick = function(e) {
             e.stopPropagation();
-            /* click Streamlit's hidden expand button */
-            var expandBtn = document.querySelector('[data-testid="stSidebarCollapsedControl"] button');
-            if (expandBtn) { expandBtn.click(); return; }
-            /* fallback: click collapse button which toggles */
-            var cb = document.querySelector('[data-testid="stSidebarCollapseButton"] button');
-            if (cb) cb.click();
+            var exp = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button');
+            if (exp) { exp.click(); return; }
+            var col = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            if (col) col.click();
         };
-        document.body.appendChild(btn);
+        doc.body.appendChild(btn);
         return btn;
     }
+
     function update() {
-        var btn = document.getElementById(ID) || make();
-        var sidebar = document.querySelector('[data-testid="stSidebar"]');
-        var open = sidebar && sidebar.getBoundingClientRect().width > 60;
+        var btn     = make();
+        var sidebar = doc.querySelector('[data-testid="stSidebar"]');
+        var open    = sidebar && sidebar.getBoundingClientRect().width > 60;
         btn.style.display = open ? 'none' : 'flex';
     }
-    function ensure() { if (!document.getElementById(ID)) make(); update(); }
-    setTimeout(ensure, 500);
-    setInterval(update, 600);
-    new MutationObserver(ensure).observe(document.body, { childList: true });
+
+    setTimeout(update, 300);
+    setInterval(update, 500);
 })();
 </script>
 """
@@ -397,7 +410,8 @@ SIDEBAR_JS = """
 
 def inject_css():
     st.markdown(CSS, unsafe_allow_html=True)
-    st.markdown(SIDEBAR_JS, unsafe_allow_html=True)
+    # components.html executes JS (st.markdown scripts are ignored by React)
+    components.html(_SIDEBAR_JS, height=0)
 
 
 def sidebar_brand():
