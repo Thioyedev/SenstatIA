@@ -14,6 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Python dependencies
 COPY pyproject.toml .
 COPY . .
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir setuptools && pip install --no-cache-dir .
 
 EXPOSE 8000 8501 8502
