@@ -16,39 +16,16 @@ footer                           { visibility: hidden; }
 [data-testid="stToolbar"]        { visibility: hidden; }
 [data-testid="stDecoration"]     { display: none; }
 
-/* Transparent header — keeps sidebar toggle functional */
+/* Transparent header */
 [data-testid="stHeader"] {
     background: transparent !important;
     border-bottom: none !important;
 }
 
-/* Sidebar collapse button (inside open sidebar) */
-[data-testid="stSidebarCollapseButton"] {
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* Sidebar expand button (when sidebar is closed) */
+/* Hide Streamlit's native sidebar toggle buttons — replaced by custom floating hamburger */
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"] {
-    position: fixed !important;
-    left: 0 !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    z-index: 9999 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    background: #00853F !important;
-    border-radius: 0 12px 12px 0 !important;
-    padding: 12px 6px !important;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.25) !important;
-}
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="collapsedControl"] button {
-    color: white !important;
-    background: transparent !important;
-    font-size: 1.1rem !important;
-}
+[data-testid="collapsedControl"] { display: none !important; }
 
 /* ── Sidebar — Claude style ───────────────────────────────── */
 [data-testid="stSidebar"] {
@@ -352,8 +329,41 @@ footer                           { visibility: hidden; }
 """
 
 
+SIDEBAR_JS = """
+<script>
+(function() {
+    var ID = 'senstat-sidebar-toggle';
+    function make() {
+        var btn = document.createElement('button');
+        btn.id = ID;
+        btn.title = 'Afficher / masquer la sidebar';
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+        btn.style.cssText = 'position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:2147483647;background:#171717;border:none;border-radius:0 8px 8px 0;width:28px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:3px 0 14px rgba(0,0,0,0.55);padding:0;outline:none;';
+        btn.onmouseenter = function() { btn.style.background = '#2a2a2a'; };
+        btn.onmouseleave = function() { btn.style.background = '#171717'; };
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            var sidebar = document.querySelector('[data-testid="stSidebar"]');
+            var isOpen = sidebar && sidebar.getBoundingClientRect().width > 60;
+            var collapseBtn = document.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            var expandBtn   = document.querySelector('[data-testid="stSidebarCollapsedControl"] button');
+            if (isOpen && collapseBtn)  { collapseBtn.click(); }
+            else if (expandBtn)         { expandBtn.click(); }
+            else if (collapseBtn)       { collapseBtn.click(); }
+        };
+        document.body.appendChild(btn);
+    }
+    function ensure() { if (!document.getElementById(ID)) make(); }
+    setTimeout(ensure, 400);
+    new MutationObserver(ensure).observe(document.body, { childList: true });
+})();
+</script>
+"""
+
+
 def inject_css():
     st.markdown(CSS, unsafe_allow_html=True)
+    st.markdown(SIDEBAR_JS, unsafe_allow_html=True)
 
 
 def sidebar_brand():
