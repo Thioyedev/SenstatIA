@@ -28,19 +28,26 @@ footer                           { visibility: hidden; }
     opacity: 1 !important;
 }
 
-/* Sidebar expand button (when sidebar is closed) — make it clearly visible */
+/* Sidebar expand button (when sidebar is closed) */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"] {
+    position: fixed !important;
+    left: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 9999 !important;
     visibility: visible !important;
     opacity: 1 !important;
     background: #00853F !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 4px !important;
+    border-radius: 0 12px 12px 0 !important;
+    padding: 12px 6px !important;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.25) !important;
 }
 [data-testid="stSidebarCollapsedControl"] button,
 [data-testid="collapsedControl"] button {
     color: white !important;
     background: transparent !important;
+    font-size: 1.1rem !important;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────── */
