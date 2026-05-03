@@ -22,12 +22,25 @@ footer                           { visibility: hidden; }
     border-bottom: none !important;
 }
 
-/* Sidebar toggle always visible */
-[data-testid="stSidebarCollapseButton"],
+/* Sidebar collapse button (inside open sidebar) */
+[data-testid="stSidebarCollapseButton"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Sidebar expand button (when sidebar is closed) — make it clearly visible */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"] {
     visibility: visible !important;
     opacity: 1 !important;
+    background: #00853F !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 4px !important;
+}
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="collapsedControl"] button {
+    color: white !important;
+    background: transparent !important;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────── */
