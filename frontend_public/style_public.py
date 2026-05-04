@@ -184,7 +184,7 @@ footer                           { visibility: hidden; }
 .fact-card .topic { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: #00853F; margin-bottom: 6px; }
 .fact-card .stat  { font-size: 2rem; font-weight: 800; color: #1A1A2E; line-height: 1.1; }
 .fact-card .desc  { font-size: 0.82rem; color: #555; margin-top: 4px; line-height: 1.4; }
-.fact-card .src   { font-size: 0.68rem; color: #aaa; margin-top: 10px; font-style: italic; }
+.fact-card .src   { font-size: 0.68rem; color: #666; margin-top: 10px; font-style: italic; }
 
 /* ── Theme cards ──────────────────────────────────────────── */
 .theme-card {
@@ -281,7 +281,7 @@ footer                           { visibility: hidden; }
 .section-lbl {
     font-size: 0.68rem; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
-    color: #aaa; margin: 0 0 10px 0;
+    color: #666; margin: 0 0 10px 0;
 }
 .divider { border: none; border-top: 1px solid #E8E8E8; margin: 16px 0; }
 

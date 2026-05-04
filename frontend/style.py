@@ -289,7 +289,7 @@ h1 a, h2 a, h3 a { display: none !important; }
 .metric-card .icon  { font-size: 1.4rem; margin-bottom: 6px; }
 .metric-card .value { font-size: 1.5rem; font-weight: 700; color: #00853F; line-height: 1.2; }
 .metric-card .label { font-size: 0.76rem; color: #666; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
-.metric-card .sub   { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
+.metric-card .sub   { font-size: 0.72rem; color: #777; margin-top: 2px; }
 
 /* Status dot */
 .status-online  { display:inline-block; width:8px; height:8px; border-radius:50%; background:#00853F; margin-right:5px; vertical-align:middle; }
