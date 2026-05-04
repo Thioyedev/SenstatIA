@@ -103,108 +103,51 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Layout ───────────────────────────────────────────────────────────────────────
-lang      = st.session_state.get("lang", "fr")
-citations = conv.get("citations", [])
-has_conv  = bool(conv["messages"])
+lang     = st.session_state.get("lang", "fr")
+has_conv = bool(conv["messages"])
 
-if citations:
-    col_main, col_side = st.columns([3, 1], gap="large")
-else:
-    col_main = st.container()
-    col_side = None
+theme_query = st.session_state.pop("theme_query", None)
+if theme_query:
+    st.session_state["pub_prefill"] = theme_query
 
-# ══ MAIN COLUMN ══════════════════════════════════════════════════════════════════
-with col_main:
-    theme_query = st.session_state.pop("theme_query", None)
-    if theme_query:
-        st.session_state["pub_prefill"] = theme_query
+if not has_conv:
+    section_lbl(t("q_quick_label"))
+    scols = st.columns(3, gap="small")
+    for i, (icon, q) in enumerate(QUICK[lang]):
+        with scols[i % 3]:
+            if st.button(f"{icon}  {q}", key=f"quick_{i}", use_container_width=True):
+                st.session_state["pub_prefill"] = q
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-    if not has_conv:
-        section_lbl(t("q_quick_label"))
-        scols = st.columns(3, gap="small")
-        for i, (icon, q) in enumerate(QUICK[lang]):
-            with scols[i % 3]:
-                if st.button(f"{icon}  {q}", key=f"quick_{i}", use_container_width=True):
-                    st.session_state["pub_prefill"] = q
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+for msg in conv["messages"]:
+    avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
 
-    for msg in conv["messages"]:
-        avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
-        with st.chat_message(msg["role"], avatar=avatar):
-            st.markdown(msg["content"])
-            if msg["role"] == "assistant" and msg.get("citations"):
-                pills = "".join(
-                    f'<span class="source-pill">📎 {c.get("institution","?")} — '
-                    f'{c.get("report_name","?")} (p.{c.get("page","?")})</span>'
-                    for c in msg["citations"][:4]
-                )
-                st.markdown(f'<div style="margin-top:8px">{pills}</div>',
-                            unsafe_allow_html=True)
+prefill = st.session_state.pop("pub_prefill", None)
+prompt  = st.chat_input(t("q_chat_input")) or prefill
 
-    prefill = st.session_state.pop("pub_prefill", None)
-    prompt  = st.chat_input(t("q_chat_input")) or prefill
+if prompt:
+    if not conv["messages"]:
+        conv["title"] = prompt[:50]
 
-    if prompt:
-        if not conv["messages"]:
-            conv["title"] = prompt[:50]
+    conv["messages"].append({"role": "user", "content": prompt})
 
-        conv["messages"].append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(prompt)
 
-        with st.chat_message("user", avatar="🧑"):
-            st.markdown(prompt)
+    with st.chat_message("assistant", avatar="🇸🇳"):
+        with st.spinner(t("spinner")):
+            try:
+                resp = httpx.post(f"{API_URL}/query",
+                                  json={"query": prompt}, timeout=90.0)
+                resp.raise_for_status()
+                data   = resp.json()
+                answer = data["answer"]
+            except Exception:
+                answer = t("error")
 
-        with st.chat_message("assistant", avatar="🇸🇳"):
-            with st.spinner(t("spinner")):
-                try:
-                    resp = httpx.post(f"{API_URL}/query",
-                                      json={"query": prompt}, timeout=90.0)
-                    resp.raise_for_status()
-                    data      = resp.json()
-                    answer    = data["answer"]
-                    new_cites = data.get("citations", [])
-                except Exception:
-                    answer    = t("error")
-                    new_cites = []
+        st.markdown(answer)
 
-            st.markdown(answer)
-            if new_cites:
-                pills = "".join(
-                    f'<span class="source-pill">📎 {c.get("institution","?")} — '
-                    f'{c.get("report_name","?")} (p.{c.get("page","?")})</span>'
-                    for c in new_cites[:4]
-                )
-                st.markdown(f'<div style="margin-top:8px">{pills}</div>',
-                            unsafe_allow_html=True)
-
-        conv["messages"].append({
-            "role":      "assistant",
-            "content":   answer,
-            "citations": new_cites,
-        })
-        conv["citations"] = new_cites
-        st.rerun()
-
-# ══ SIDE COLUMN ══════════════════════════════════════════════════════════════════
-if col_side and citations:
-    with col_side:
-        st.markdown(f"#### {t('sources')}")
-        seen = set()
-        for c in citations:
-            key = c.get("source_id") or c.get("report_name")
-            if key in seen:
-                continue
-            seen.add(key)
-            st.markdown(f"""
-<div style="background:white;border-radius:10px;padding:12px 14px;margin:6px 0;
-            box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:3px solid #00853F;">
-    <div style="font-weight:600;font-size:0.83rem;color:#00853F;">{c.get("institution","?")}</div>
-    <div style="font-size:0.8rem;color:#333;margin:3px 0;">{c.get("report_name","?")}</div>
-    <div style="font-size:0.7rem;color:#888;">{c.get("year","?")}</div>
-</div>
-""", unsafe_allow_html=True)
-        st.markdown(f"""
-<div style="background:#F0FFF4;border-radius:10px;padding:14px;font-size:0.78rem;
-            color:#2D6A4F;margin-top:12px;">
-    <strong>{t("verified")}</strong><br><br>{t("verified_desc")}
-</div>
-""", unsafe_allow_html=True)
+    conv["messages"].append({"role": "assistant", "content": answer})
+    st.rerun()

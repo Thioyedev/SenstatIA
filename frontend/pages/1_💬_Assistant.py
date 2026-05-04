@@ -186,149 +186,75 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Layout ───────────────────────────────────────────────────────────────────────
-citations = conv.get("citations", [])
-has_conv  = bool(conv["messages"])
+has_conv   = bool(conv["messages"])
+intent_map = INTENT_LABELS[lang]
 
-if citations:
-    col_chat, col_side = st.columns([3, 1], gap="medium")
-else:
-    col_chat = st.container()
-    col_side = None
+if not has_conv:
+    section_label(t["quick_label"])
+    scols = st.columns(3, gap="small")
+    for i, (icon, q) in enumerate(QUICK[lang]):
+        with scols[i % 3]:
+            if st.button(f"{icon}  {q}", key=f"quick_{i}", use_container_width=True):
+                st.session_state["prefill_query"] = q
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-# ══ CHAT COLUMN ══════════════════════════════════════════════════════════════════
-with col_chat:
-    if not has_conv:
-        section_label(t["quick_label"])
-        scols = st.columns(3, gap="small")
-        for i, (icon, q) in enumerate(QUICK[lang]):
-            with scols[i % 3]:
-                if st.button(f"{icon}  {q}", key=f"quick_{i}", use_container_width=True):
-                    st.session_state["prefill_query"] = q
-        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+for msg in conv["messages"]:
+    avatar = "🧑" if msg["role"] == "user" else "📊"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
+        if msg["role"] == "assistant":
+            ts         = msg.get("timestamp", "")
+            intent_key = msg.get("intent", "")
+            icon, lbl  = intent_map.get(intent_key, ("", ""))
+            parts = [p for p in [ts, f"{icon} {lbl}" if lbl else ""] if p]
+            if parts:
+                st.caption("  ·  ".join(parts))
 
-    intent_map = INTENT_LABELS[lang]
-    for msg in conv["messages"]:
-        avatar = "🧑" if msg["role"] == "user" else "📊"
-        with st.chat_message(msg["role"], avatar=avatar):
-            st.markdown(msg["content"])
-            if msg["role"] == "assistant":
-                ts         = msg.get("timestamp", "")
-                intent_key = msg.get("intent", "")
-                icon, lbl  = intent_map.get(intent_key, ("", ""))
-                parts = [p for p in [ts, f"{icon} {lbl}" if lbl else ""] if p]
-                if parts:
-                    st.caption("  ·  ".join(parts))
-                if msg.get("citations"):
-                    pills = "".join(
-                        f'<span class="citation-pill">📎 {c.get("institution","?")} — '
-                        f'{c.get("report_name","?")} (p.{c.get("page","?")})</span>'
-                        for c in msg["citations"][:4]
-                    )
-                    st.markdown(f'<div style="margin-top:6px">{pills}</div>',
-                                unsafe_allow_html=True)
+prefill = st.session_state.pop("prefill_query", None)
+prompt  = st.chat_input(t["chat_input"]) or prefill
 
-    prefill = st.session_state.pop("prefill_query", None)
-    prompt  = st.chat_input(t["chat_input"]) or prefill
+if prompt:
+    now = datetime.now().strftime("%H:%M")
 
-    if prompt:
-        now = datetime.now().strftime("%H:%M")
+    if not conv["messages"]:
+        conv["title"] = prompt[:50]
 
-        if not conv["messages"]:
-            conv["title"] = prompt[:50]
+    conv["messages"].append({"role": "user", "content": prompt})
 
-        conv["messages"].append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(prompt)
 
-        with st.chat_message("user", avatar="🧑"):
-            st.markdown(prompt)
+    with st.chat_message("assistant", avatar="📊"):
+        with st.spinner(t["spinner"]):
+            try:
+                resp = httpx.post(f"{API_URL}/query",
+                                  json={"query": prompt}, timeout=90.0)
+                resp.raise_for_status()
+                data   = resp.json()
+                answer = data["answer"]
+                intent = data.get("intent", "")
+            except httpx.ConnectError:
+                answer = t["error_conn"]
+                intent = ""
+            except Exception as e:
+                answer = t["error_gen"] + str(e)
+                intent = ""
 
-        with st.chat_message("assistant", avatar="📊"):
-            with st.spinner(t["spinner"]):
-                try:
-                    resp = httpx.post(f"{API_URL}/query",
-                                      json={"query": prompt}, timeout=90.0)
-                    resp.raise_for_status()
-                    data      = resp.json()
-                    answer    = data["answer"]
-                    new_cites = data.get("citations", [])
-                    intent    = data.get("intent", "")
-                except httpx.ConnectError:
-                    answer    = t["error_conn"]
-                    new_cites = []
-                    intent    = ""
-                except Exception as e:
-                    answer    = t["error_gen"] + str(e)
-                    new_cites = []
-                    intent    = ""
+        st.markdown(answer)
+        icon, lbl = intent_map.get(intent, ("", ""))
+        parts = [now] + ([f"{icon} {lbl}"] if lbl else [])
+        st.caption("  ·  ".join(parts))
 
-            st.markdown(answer)
-            icon, lbl = intent_map.get(intent, ("", ""))
-            parts = [now] + ([f"{icon} {lbl}"] if lbl else [])
-            st.caption("  ·  ".join(parts))
+    conv["messages"].append({
+        "role":      "assistant",
+        "content":   answer,
+        "intent":    intent,
+        "timestamp": now,
+    })
+    st.rerun()
 
-            if new_cites:
-                pills = "".join(
-                    f'<span class="citation-pill">📎 {c.get("institution","?")} — '
-                    f'{c.get("report_name","?")} (p.{c.get("page","?")})</span>'
-                    for c in new_cites[:4]
-                )
-                st.markdown(f'<div style="margin-top:6px">{pills}</div>',
-                            unsafe_allow_html=True)
-
-        conv["messages"].append({
-            "role":      "assistant",
-            "content":   answer,
-            "intent":    intent,
-            "timestamp": now,
-            "citations": new_cites,
-        })
-        conv["citations"] = new_cites
-        st.rerun()
-
-# ══ SIDE COLUMN ══════════════════════════════════════════════════════════════════
-if col_side and citations:
-    with col_side:
-        st.markdown(f"#### {t['sources']}")
-
-        for c in citations:
-            url_html = (
-                f'<a href="{c["url"]}" target="_blank" '
-                f'style="color:#00853F;text-decoration:none;">↗</a>'
-                if c.get("url") else ""
-            )
-            st.markdown(f"""
-<div class="citation-card">
-    <div class="source">{c.get("institution","?")} {url_html}</div>
-    <div style="font-size:0.82rem;color:#333;margin:2px 0;">{c.get("report_name","?")}</div>
-    <div class="details">{c.get("year","?")} · page {c.get("page","?")}</div>
-</div>
-""", unsafe_allow_html=True)
-
-        n_turns = sum(1 for m in conv["messages"] if m["role"] == "user")
-        st.markdown(f"""
-<div class="card" style="padding:14px;text-align:center;margin-top:12px;">
-    <div style="display:flex;justify-content:space-around;">
-        <div>
-            <div style="font-size:1.3rem;font-weight:700;color:#00853F;">{n_turns}</div>
-            <div style="font-size:0.72rem;color:#888;">{t['questions']}</div>
-        </div>
-        <div>
-            <div style="font-size:1.3rem;font-weight:700;color:#00853F;">{len(citations)}</div>
-            <div style="font-size:0.72rem;color:#888;">{t['sources_count']}</div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-        st.markdown(f"""
-<div style="background:#F0FFF4;border-radius:10px;padding:12px;font-size:0.77rem;
-            color:#2D6A4F;margin-top:10px;">
-    <strong>{t['verified']}</strong><br><br>{t['verified_desc']}
-</div>
-""", unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button(t["clear"], use_container_width=True):
-            conv["messages"]  = []
-            conv["citations"] = []
-            conv["title"]     = "Nouvelle conversation"
-            st.rerun()
+st.markdown("<br>", unsafe_allow_html=True)
+if conv["messages"] and st.button(t["clear"], use_container_width=False):
+    conv["messages"] = []
+    conv["title"]    = "Nouvelle conversation"
+    st.rerun()

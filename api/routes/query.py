@@ -4,10 +4,7 @@ from loguru import logger
 from api.schemas import QueryRequest, QueryResponse, Citation
 from agents.graph import get_graph
 
-_INLINE_CITE_RE = re.compile(
-    r'\s*\[[A-ZÉÈÊËÀÂÙÛÜ][^\]]{3,60}(?:—|-)[^\]]*p\.\s*\d+\]',
-    re.IGNORECASE,
-)
+_INLINE_CITE_RE = re.compile(r'\s*\[[^\]]*p\.\s*\d+\]')
 
 router = APIRouter()
 
