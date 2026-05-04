@@ -224,13 +224,8 @@ footer                           { visibility: hidden; }
     color: white;
 }
 
-/* Hide external explore buttons — card click triggers them via JS */
-[data-testid="column"]:has(.theme-card) .stButton {
-    height: 0 !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
+/* user-select: none prevents text highlight on card click */
+.theme-card { user-select: none; -webkit-user-select: none; }
 
 /* ── Answer box ───────────────────────────────────────────── */
 .answer-box {
@@ -415,25 +410,39 @@ _SIDEBAR_JS = """
     }
 
     // ── Theme card click delegation ──────────────────────────────────────────
+    function siblingButton(card) {
+        // Walk up to the direct child of stVerticalBlock
+        var el = card;
+        while (el && el.parentElement &&
+               !el.parentElement.matches('[data-testid="stVerticalBlock"]')) {
+            el = el.parentElement;
+        }
+        if (!el) return null;
+        var next = el.nextElementSibling;
+        while (next) {
+            var btn = next.querySelector('.stButton > button');
+            if (btn) return { container: next.querySelector('.stButton'), btn: btn };
+            next = next.nextElementSibling;
+        }
+        return null;
+    }
+
     function setupThemeCards() {
         doc.querySelectorAll('.theme-card').forEach(function(card) {
             if (card.dataset.clickReady) return;
             card.dataset.clickReady = '1';
+
+            // Hide the sibling Streamlit button — JS is reliable, CSS :has() is not
+            var found = siblingButton(card);
+            if (found && found.container) {
+                found.container.style.cssText =
+                    'height:0;overflow:hidden;margin:0;padding:0;';
+            }
+
+            // Delegate card click → hidden button
             card.addEventListener('click', function() {
-                // Walk up until we are a direct child of stVerticalBlock
-                var el = card;
-                while (el && el.parentElement &&
-                       !el.parentElement.matches('[data-testid="stVerticalBlock"]')) {
-                    el = el.parentElement;
-                }
-                if (!el) return;
-                // Find the immediately following sibling that contains a button
-                var next = el.nextElementSibling;
-                while (next) {
-                    var btn = next.querySelector('.stButton > button');
-                    if (btn) { btn.click(); return; }
-                    next = next.nextElementSibling;
-                }
+                var f = siblingButton(card);
+                if (f) f.btn.click();
             });
         });
     }
