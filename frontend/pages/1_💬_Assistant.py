@@ -128,20 +128,8 @@ if "current_conv_id" not in st.session_state or \
 cid  = st.session_state.current_conv_id
 conv = st.session_state.conversations[cid]
 
-# ── Sidebar ─────────────────────────────────────────────────────────────────────
+# ── Sidebar (toggle is inside sidebar_brand) ────────────────────────────────────
 sidebar_brand()
-
-lc1, lc2 = st.sidebar.columns(2)
-if lc1.button("🇫🇷 FR", use_container_width=True,
-              type="primary" if lang == "fr" else "secondary"):
-    st.session_state.lang = "fr"
-    st.rerun()
-if lc2.button("🇬🇧 EN", use_container_width=True,
-              type="primary" if lang == "en" else "secondary"):
-    st.session_state.lang = "en"
-    st.rerun()
-
-st.sidebar.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
 if st.sidebar.button(t["new_conv"], use_container_width=True):
     new_conversation()
