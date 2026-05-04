@@ -1,0 +1,29 @@
+[project]
+enable_telemetry = false
+name = "SenStat"
+
+[features]
+prompt_playground = false
+multi_modal = false
+speech_to_text = false
+edit_message = false
+
+[UI]
+name = "SenStat"
+description = "Statistiques officielles du Sénégal · ANSD · DPEE · BCEAO"
+default_collapse_content = false
+hide_cot = true
+show_readme_as_default = true
+icon = "public/logo.png"
+
+[UI.theme]
+primary_color = "#00853F"
+font_family = "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+
+[UI.theme.light]
+background = "#F5F7FA"
+paper = "#FFFFFF"
+
+[UI.theme.dark]
+background = "#1A1A2E"
+paper = "#16213E"
