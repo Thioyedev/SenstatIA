@@ -70,14 +70,15 @@ st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 # ── Themes ────────────────────────────────────────────────────────────────────────
 section_lbl(t("home_explore"))
 cols = st.columns(3, gap="small")
-for i, (emoji, name, desc, src) in enumerate(THEMES[lang]):
+for i, (emoji, name, desc, src, color) in enumerate(THEMES[lang]):
     with cols[i % 3]:
         st.markdown(f"""
-<div class="theme-card">
+<div class="theme-card" style="border-top: 3px solid {color};">
     <div class="emoji">{emoji}</div>
     <div class="name">{name}</div>
     <div class="desc">{desc}</div>
-    <div class="count">📄 {src}</div>
+    <div class="source">📄 {src}</div>
+    <div class="explore-cta">{t('explore_btn')} →</div>
 </div>
 """, unsafe_allow_html=True)
         if st.button(f"{t('explore_btn')} {name}", key=f"theme_{i}", use_container_width=True):

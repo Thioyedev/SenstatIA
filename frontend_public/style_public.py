@@ -190,19 +190,47 @@ footer                           { visibility: hidden; }
 .theme-card {
     background: white;
     border-radius: 14px;
-    padding: 22px 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 24px 18px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: transform 0.18s, box-shadow 0.18s;
     text-align: center;
-    height: 100%;
     color: #1A1A1A;
+    /* accent border-top set inline per theme */
 }
-.theme-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-.theme-card .emoji { font-size: 2.2rem; margin-bottom: 10px; }
-.theme-card .name  { font-weight: 700; font-size: 1rem; color: #1A1A2E; }
-.theme-card .desc  { font-size: 0.78rem; color: #777; margin-top: 4px; line-height: 1.4; }
-.theme-card .count { font-size: 0.7rem; color: #00853F; font-weight: 600; margin-top: 10px; }
+.theme-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.13);
+}
+.theme-card .emoji  { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
+.theme-card .name   { font-weight: 700; font-size: 1rem; color: #1A1A2E; margin-bottom: 6px; }
+.theme-card .desc   { font-size: 0.78rem; color: #666; line-height: 1.4; margin-bottom: 10px; }
+.theme-card .source { font-size: 0.69rem; color: #00853F; font-weight: 600; }
+.theme-card .explore-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 14px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.79rem;
+    font-weight: 600;
+    background: #F0FFF4;
+    color: #00853F;
+    transition: background 0.18s, color 0.18s;
+}
+.theme-card:hover .explore-cta {
+    background: #00853F;
+    color: white;
+}
+
+/* Hide external explore buttons — card click triggers them via JS */
+[data-testid="column"]:has(.theme-card) .stButton {
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
 /* ── Answer box ───────────────────────────────────────────── */
 .answer-box {
@@ -344,9 +372,11 @@ _SIDEBAR_JS = """
 <script>
 (function() {
     var doc = window.parent.document;
-    var ID  = 'senstat-sidebar-tab';
 
-    function make() {
+    // ── Sidebar tab ──────────────────────────────────────────────────────────
+    var ID = 'senstat-sidebar-tab';
+
+    function makeSidebarTab() {
         if (doc.getElementById(ID)) return doc.getElementById(ID);
         var btn = doc.createElement('button');
         btn.id    = ID;
@@ -377,15 +407,46 @@ _SIDEBAR_JS = """
         return btn;
     }
 
-    function update() {
-        var btn     = make();
+    function updateSidebar() {
+        var tab     = makeSidebarTab();
         var sidebar = doc.querySelector('[data-testid="stSidebar"]');
         var open    = sidebar && sidebar.getBoundingClientRect().width > 60;
-        btn.style.display = open ? 'none' : 'flex';
+        tab.style.display = open ? 'none' : 'flex';
     }
 
-    setTimeout(update, 300);
-    setInterval(update, 500);
+    // ── Theme card click delegation ──────────────────────────────────────────
+    function setupThemeCards() {
+        doc.querySelectorAll('.theme-card').forEach(function(card) {
+            if (card.dataset.clickReady) return;
+            card.dataset.clickReady = '1';
+            card.addEventListener('click', function() {
+                // Walk up until we are a direct child of stVerticalBlock
+                var el = card;
+                while (el && el.parentElement &&
+                       !el.parentElement.matches('[data-testid="stVerticalBlock"]')) {
+                    el = el.parentElement;
+                }
+                if (!el) return;
+                // Find the immediately following sibling that contains a button
+                var next = el.nextElementSibling;
+                while (next) {
+                    var btn = next.querySelector('.stButton > button');
+                    if (btn) { btn.click(); return; }
+                    next = next.nextElementSibling;
+                }
+            });
+        });
+    }
+
+    // ── Shared observer + init ───────────────────────────────────────────────
+    setTimeout(function() { updateSidebar(); setupThemeCards(); }, 300);
+    setInterval(updateSidebar, 500);
+
+    var observer = new MutationObserver(function() {
+        updateSidebar();
+        setupThemeCards();
+    });
+    observer.observe(doc.body, { childList: true, subtree: true });
 })();
 </script>
 """

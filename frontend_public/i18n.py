@@ -138,20 +138,20 @@ QUICK = {
 # ── Themes ─────────────────────────────────────────────────────────────────────
 THEMES = {
     "fr": [
-        ("👥", "Population", "Démographie, régions, ménages, migrations", "RGPH-5 2023"),
-        ("💰", "Pauvreté",   "Inégalités, conditions de vie, accès aux services", "EHCVM 2021-2022"),
-        ("📈", "Économie",   "PIB, emploi, secteurs, croissance", "SES 2022-2023"),
-        ("🏥", "Santé",      "Mortalité, nutrition, accès aux soins", "EDS + SES 2023"),
-        ("🎓", "Éducation",  "Scolarisation, alphabétisation, formation", "SES 2022-2023"),
-        ("🌾", "Agriculture","Productions, filières, sécurité alimentaire", "SES 2022-2023"),
+        ("👥", "Population", "Démographie, régions, ménages, migrations", "RGPH-5 2023",      "#1565C0"),
+        ("💰", "Pauvreté",   "Inégalités, conditions de vie, accès aux services", "EHCVM 2021-2022", "#E65100"),
+        ("📊", "Économie",   "PIB, emploi, secteurs, croissance", "SES 2022-2023",            "#00853F"),
+        ("🏥", "Santé",      "Mortalité, nutrition, accès aux soins", "EDS + SES 2023",       "#C62828"),
+        ("🎓", "Éducation",  "Scolarisation, alphabétisation, formation", "SES 2022-2023",    "#6A1B9A"),
+        ("🌾", "Agriculture","Productions, filières, sécurité alimentaire", "SES 2022-2023",  "#558B2F"),
     ],
     "en": [
-        ("👥", "Population", "Demographics, regions, households, migration", "RGPH-5 2023"),
-        ("💰", "Poverty",    "Inequality, living conditions, access to services", "EHCVM 2021-2022"),
-        ("📈", "Economy",    "GDP, employment, sectors, growth", "SES 2022-2023"),
-        ("🏥", "Health",     "Mortality, nutrition, access to care", "EDS + SES 2023"),
-        ("🎓", "Education",  "Enrollment, literacy, training", "SES 2022-2023"),
-        ("🌾", "Agriculture","Production, supply chains, food security", "SES 2022-2023"),
+        ("👥", "Population", "Demographics, regions, households, migration", "RGPH-5 2023",   "#1565C0"),
+        ("💰", "Poverty",    "Inequality, living conditions, access to services", "EHCVM 2021-2022", "#E65100"),
+        ("📊", "Economy",    "GDP, employment, sectors, growth", "SES 2022-2023",             "#00853F"),
+        ("🏥", "Health",     "Mortality, nutrition, access to care", "EDS + SES 2023",        "#C62828"),
+        ("🎓", "Education",  "Enrollment, literacy, training", "SES 2022-2023",               "#6A1B9A"),
+        ("🌾", "Agriculture","Production, supply chains, food security", "SES 2022-2023",     "#558B2F"),
     ],
 }
 

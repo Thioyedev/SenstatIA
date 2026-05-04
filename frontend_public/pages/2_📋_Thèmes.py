@@ -26,7 +26,7 @@ st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
 questions = THEME_QUESTIONS[lang]
 
-for emoji, name, desc, src in THEMES[lang]:
+for emoji, name, desc, src, color in THEMES[lang]:
     theme_qs = questions.get(name, [])
     with st.expander(f"**{emoji} {name}**", expanded=False):
         st.caption(f"{desc} · {src}")
