@@ -277,6 +277,24 @@ footer                           { visibility: hidden; }
     box-shadow: 0 2px 8px rgba(0,133,63,0.12);
 }
 
+/* Sidebar buttons — dark theme override */
+[data-testid="stSidebar"] .stButton > button {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.14) !important;
+    color: rgba(255,255,255,0.85) !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255,255,255,0.16) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    color: white !important;
+    box-shadow: none !important;
+}
+[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background: #00853F !important;
+    border-color: #00853F !important;
+    color: white !important;
+}
+
 /* ── Section label ────────────────────────────────────────── */
 .section-lbl {
     font-size: 0.68rem; font-weight: 700;

@@ -155,6 +155,24 @@ footer                           { visibility: hidden; }
     border-color: #00853F;
 }
 
+/* Sidebar buttons — dark theme override */
+[data-testid="stSidebar"] .stButton > button {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.14) !important;
+    color: rgba(255,255,255,0.85) !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255,255,255,0.16) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    color: white !important;
+    box-shadow: none !important;
+}
+[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background: #00853F !important;
+    border-color: #00853F !important;
+    color: white !important;
+}
+
 /* ── Page banner ──────────────────────────────────────────── */
 .page-banner {
     display: flex;
