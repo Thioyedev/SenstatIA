@@ -185,6 +185,26 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Helpers ───────────────────────────────────────────────────────────────────────
+def _dedup_citations(cites: list) -> list:
+    seen, out = set(), []
+    for c in cites:
+        key = (c.get("institution"), c.get("report_name"))
+        if key not in seen:
+            seen.add(key)
+            out.append(c)
+    return out
+
+def _render_pills(cites: list):
+    pills = "".join(
+        f'<span class="citation-pill">📎 {c.get("institution","?")} — '
+        f'{c.get("report_name","?")}</span>'
+        for c in _dedup_citations(cites)
+    )
+    if pills:
+        st.markdown(f'<div style="margin-top:8px">{pills}</div>',
+                    unsafe_allow_html=True)
+
 # ── Layout ───────────────────────────────────────────────────────────────────────
 has_conv   = bool(conv["messages"])
 intent_map = INTENT_LABELS[lang]
@@ -209,6 +229,8 @@ for msg in conv["messages"]:
             parts = [p for p in [ts, f"{icon} {lbl}" if lbl else ""] if p]
             if parts:
                 st.caption("  ·  ".join(parts))
+            if msg.get("citations"):
+                _render_pills(msg["citations"])
 
 prefill = st.session_state.pop("prefill_query", None)
 prompt  = st.chat_input(t["chat_input"]) or prefill
@@ -230,26 +252,31 @@ if prompt:
                 resp = httpx.post(f"{API_URL}/query",
                                   json={"query": prompt}, timeout=90.0)
                 resp.raise_for_status()
-                data   = resp.json()
-                answer = data["answer"]
-                intent = data.get("intent", "")
+                data      = resp.json()
+                answer    = data["answer"]
+                new_cites = data.get("citations", [])
+                intent    = data.get("intent", "")
             except httpx.ConnectError:
-                answer = t["error_conn"]
-                intent = ""
+                answer    = t["error_conn"]
+                new_cites = []
+                intent    = ""
             except Exception as e:
-                answer = t["error_gen"] + str(e)
-                intent = ""
+                answer    = t["error_gen"] + str(e)
+                new_cites = []
+                intent    = ""
 
         st.markdown(answer)
         icon, lbl = intent_map.get(intent, ("", ""))
         parts = [now] + ([f"{icon} {lbl}"] if lbl else [])
         st.caption("  ·  ".join(parts))
+        _render_pills(new_cites)
 
     conv["messages"].append({
         "role":      "assistant",
         "content":   answer,
         "intent":    intent,
         "timestamp": now,
+        "citations": new_cites,
     })
     st.rerun()
 

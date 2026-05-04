@@ -119,10 +119,31 @@ if not has_conv:
                 st.session_state["pub_prefill"] = q
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
+def _dedup_citations(cites: list) -> list:
+    seen, out = set(), []
+    for c in cites:
+        key = (c.get("institution"), c.get("report_name"))
+        if key not in seen:
+            seen.add(key)
+            out.append(c)
+    return out
+
+def _render_pills(cites: list):
+    pills = "".join(
+        f'<span class="source-pill">📎 {c.get("institution","?")} — '
+        f'{c.get("report_name","?")}</span>'
+        for c in _dedup_citations(cites)
+    )
+    if pills:
+        st.markdown(f'<div style="margin-top:10px">{pills}</div>',
+                    unsafe_allow_html=True)
+
 for msg in conv["messages"]:
     avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
+        if msg["role"] == "assistant" and msg.get("citations"):
+            _render_pills(msg["citations"])
 
 prefill = st.session_state.pop("pub_prefill", None)
 prompt  = st.chat_input(t("q_chat_input")) or prefill
@@ -142,12 +163,19 @@ if prompt:
                 resp = httpx.post(f"{API_URL}/query",
                                   json={"query": prompt}, timeout=90.0)
                 resp.raise_for_status()
-                data   = resp.json()
-                answer = data["answer"]
+                data      = resp.json()
+                answer    = data["answer"]
+                new_cites = data.get("citations", [])
             except Exception:
-                answer = t("error")
+                answer    = t("error")
+                new_cites = []
 
         st.markdown(answer)
+        _render_pills(new_cites)
 
-    conv["messages"].append({"role": "assistant", "content": answer})
+    conv["messages"].append({
+        "role":      "assistant",
+        "content":   answer,
+        "citations": new_cites,
+    })
     st.rerun()
