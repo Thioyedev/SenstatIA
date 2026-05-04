@@ -1,7 +1,13 @@
+import re
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from api.schemas import QueryRequest, QueryResponse, Citation
 from agents.graph import get_graph
+
+_INLINE_CITE_RE = re.compile(
+    r'\s*\[[A-ZÉÈÊËÀÂÙÛÜ][^\]]{3,60}(?:—|-)[^\]]*p\.\s*\d+\]',
+    re.IGNORECASE,
+)
 
 router = APIRouter()
 
@@ -22,9 +28,10 @@ async def query(request: QueryRequest):
             "citations": [],
             "messages": [],
         })
+        answer = _INLINE_CITE_RE.sub("", result["synthesis"]).strip()
         return QueryResponse(
             query=request.query,
-            answer=result["synthesis"],
+            answer=answer,
             citations=[Citation(**c) for c in result.get("citations", [])],
             intent=result.get("intent", "lookup"),
         )
