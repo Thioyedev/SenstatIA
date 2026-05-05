@@ -102,9 +102,9 @@ def retrieval_agent(state: AgentState) -> dict:
 
     # 1. Dense retrieval (with optional source filter)
     dense = store.search(query, n_results=20, where=src_filter)
-    # Fall back to unfiltered if filter returns too few results
-    if len(dense) < TOP_K and src_filter is not None:
-        logger.debug(f"Source filter returned only {len(dense)} chunks — falling back to full corpus")
+    # Fall back only if the filter returns nothing at all
+    if len(dense) == 0 and src_filter is not None:
+        logger.debug("Source filter returned 0 chunks — falling back to full corpus")
         dense = store.search(query, n_results=20)
         src_filter = None
 
