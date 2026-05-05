@@ -150,10 +150,17 @@ def _format_structured(state: AgentState) -> str:
 def synthesis_agent(state: AgentState) -> dict:
     chunks = state.get("retrieved_chunks", [])
     query = state["query"]
+    history = state.get("conversation_history", [])
 
     chunks_text = _format_chunks(chunks)
     structured_data = _format_structured(state)
     prompt = SYNTHESIS_PROMPT.format(chunks=chunks_text, structured_data=structured_data, query=query)
+
+    # Build multi-turn messages: inject history (plain Q&A), then current prompt with chunks
+    messages = []
+    for msg in history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": prompt})
 
     response = _client.messages.create(
         model="claude-sonnet-4-6",
@@ -162,7 +169,7 @@ def synthesis_agent(state: AgentState) -> dict:
             "Tu es SenStat, un assistant qui explique les statistiques officielles du Sénégal "
             "en langage simple et accessible à tous les citoyens."
         ),
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
     )
     synthesis = response.content[0].text.strip()
     citations = _extract_citations(chunks)
