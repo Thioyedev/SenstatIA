@@ -19,12 +19,18 @@ Historique récent :
 
 Nouvelle question : {query}
 
-Si cette question est une question de suivi qui dépend du contexte précédent (ellipse, pronom, "et pour X ?", etc.), \
-reformule-la en une question complète et autonome qu'un moteur de recherche peut comprendre sans l'historique.
+Ta tâche : si cette question est une question de suivi elliptique (ex: "et pour Louga ?", "et Thiès ?", "et les femmes ?"), \
+reformule-la en une question précise et autonome en reprenant EXACTEMENT la même métrique/indicateur que dans la question précédente de l'utilisateur.
 
-Règles :
-- Conserve la même langue que la question
-- Reste fidèle à l'intention : ne change pas le sujet, ne rajoute pas d'informations
+Exemples :
+- Historique : "Quelles sont les régions les plus pauvres ?" → "et pour Louga ?" → "Quel est le taux de pauvreté à Louga ?"
+- Historique : "Quelle est la population de Dakar ?" → "et Thiès ?" → "Quelle est la population de la région de Thiès ?"
+- Historique : "Quel est le taux de chômage des jeunes ?" → "et les femmes ?" → "Quel est le taux de chômage des femmes ?"
+
+Règles strictes :
+- CONSERVE la même métrique/indicateur que dans la question précédente — ne généralise jamais
+- Ne rajoute PAS d'autres indicateurs ou sujets non demandés
+- Conserve la même langue que la nouvelle question
 - Si la question est déjà autonome et claire, retourne-la EXACTEMENT telle quelle
 
 Retourne UNIQUEMENT la question reformulée, sans explication, sans guillemets."""
