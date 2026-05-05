@@ -8,6 +8,7 @@ Usage:
     python scripts/eval_retrieval.py --no-ragas         # Custom metrics only (faster)
 """
 
+import os
 import sys
 import json
 import argparse
@@ -21,6 +22,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from loguru import logger
+logger.remove()
+logger.add(lambda msg: print(msg, end=""), level="INFO", colorize=False,
+           format="{time:HH:mm:ss} | {level:<7} | {message}")
 import pandas as pd
 from vectorstore.chroma_store import ChromaStore
 from agents.graph import get_graph
@@ -182,41 +186,62 @@ if not args.no_ragas and ragas_samples:
     logger.info("Running RAGAS evaluation…")
     print("Running RAGAS metrics (this may take a few minutes)…\n")
     try:
-        from ragas import evaluate, EvaluationDataset, SingleTurnSample
-        from ragas.metrics.collections import Faithfulness, ResponseRelevancy, ContextPrecision
+        import warnings
+        import numpy as np
+        from datasets import Dataset
+        from ragas import evaluate
+        from ragas.run_config import RunConfig
+        # Old-style singleton metrics (deprecated but compatible with evaluate())
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            from ragas.metrics import faithfulness, answer_relevancy, context_precision
         from ragas.llms import LangchainLLMWrapper
         from ragas.embeddings import LangchainEmbeddingsWrapper
         from langchain_anthropic import ChatAnthropic
         from langchain_huggingface import HuggingFaceEmbeddings
 
         llm = LangchainLLMWrapper(
-            ChatAnthropic(model="claude-haiku-4-5-20251001", max_tokens=1024)
+            ChatAnthropic(model="claude-haiku-4-5-20251001", max_tokens=2048)
         )
-        embeddings = LangchainEmbeddingsWrapper(
+        emb = LangchainEmbeddingsWrapper(
             HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
         )
+        faithfulness.llm      = llm
+        answer_relevancy.llm  = llm
+        answer_relevancy.embeddings = emb
+        context_precision.llm = llm
 
-        samples = [
-            SingleTurnSample(
-                user_input=s["question"],
-                response=s["answer"],
-                retrieved_contexts=s["contexts"],
-                reference=s["ground_truth"],
-            )
-            for s in ragas_samples
-        ]
-        dataset = EvaluationDataset(samples=samples)
+        # Sequential execution (max_workers=1) avoids the 50 req/min rate limit.
+        # max_retries=5 + max_wait=60s handles transient failures with back-off.
+        run_cfg = RunConfig(
+            max_workers=1,
+            max_retries=5,
+            max_wait=60,
+            timeout=120,
+        )
+        print(f"  Config: sequential (1 worker), max_retries=5, max_wait=60s\n")
+
+        # datasets.Dataset (v1 format) is required for old-style metrics
+        ragas_dataset = Dataset.from_dict({
+            "question":    [s["question"]    for s in ragas_samples],
+            "answer":      [s["answer"]      for s in ragas_samples],
+            "contexts":    [s["contexts"]    for s in ragas_samples],
+            "ground_truth":[s["ground_truth"]for s in ragas_samples],
+        })
 
         ragas_result = evaluate(
-            dataset=dataset,
-            metrics=[Faithfulness(), ResponseRelevancy(), ContextPrecision()],
-            llm=llm,
-            embeddings=embeddings,
+            dataset=ragas_dataset,
+            metrics=[faithfulness, answer_relevancy, context_precision],
+            run_config=run_cfg,
         )
+
+        # Per-row scores — compute mean excluding NaN (failed samples)
+        df_ragas = ragas_result.to_pandas()
         ragas_scores = {
-            "faithfulness":        round(float(ragas_result["faithfulness"]), 3),
-            "response_relevancy":  round(float(ragas_result["response_relevancy"]), 3),
-            "context_precision":   round(float(ragas_result["context_precision"]), 3),
+            "faithfulness":     round(float(df_ragas["faithfulness"].mean()),     3),
+            "answer_relevancy":  round(float(df_ragas["answer_relevancy"].mean()),  3),
+            "context_precision": round(float(df_ragas["context_precision"].mean()), 3),
+            "n_scored": int(df_ragas["faithfulness"].notna().sum()),
         }
     except Exception as e:
         logger.warning(f"RAGAS failed: {e}")
@@ -252,11 +277,83 @@ if n_oos > 0:
 if ragas_scores and "ragas_error" not in ragas_scores:
     print()
     print("  ── RAGAS metrics ─────────────────────────────────")
-    print(f"  Faithfulness        : {ragas_scores.get('faithfulness', 'N/A'):.3f}")
-    print(f"  Response Relevancy  : {ragas_scores.get('response_relevancy', 'N/A'):.3f}")
-    print(f"  Context Precision   : {ragas_scores.get('context_precision', 'N/A'):.3f}")
-    overall = sum(ragas_scores.values()) / len(ragas_scores)
-    print(f"  Score global RAGAS  : {overall:.3f}/1.0")
+    numeric = {k: v for k, v in ragas_scores.items() if isinstance(v, float)}
+    n_scored = ragas_scores.get("n_scored", "?")
+    faith = numeric.get("faithfulness",     float("nan"))
+    relev = numeric.get("answer_relevancy", float("nan"))
+    prec  = numeric.get("context_precision",float("nan"))
+
+    def _bar(v: float, w: int = 10) -> str:
+        filled = round(v * w) if v == v else 0
+        return "█" * filled + "░" * (w - filled)
+
+    def _flag(v: float, good: float = 0.75, warn: float = 0.55) -> str:
+        if v != v:        return "  ?"
+        if v >= good:     return "  ✅"
+        if v >= warn:     return "  ⚠️ "
+        return "  ❌"
+
+    print(f"  Samples scorés      : {n_scored}/{len(ragas_samples)}")
+    print(f"  Faithfulness        : {faith:.3f}  {_bar(faith)}{_flag(faith)}")
+    print(f"    → Les réponses sont-elles ancrées dans les chunks récupérés ?")
+    if faith >= 0.75:
+        print(f"       Bien : peu d'inventions, le modèle reste dans les sources.")
+    elif faith >= 0.55:
+        print(f"       Moyen : quelques affirmations non étayées — revoir le prompt synthesis.")
+    else:
+        print(f"       Faible : hallucinations fréquentes — réduire max_tokens ou durcir le prompt.")
+
+    print(f"  Answer Relevancy    : {relev:.3f}  {_bar(relev)}{_flag(relev)}")
+    print(f"    → Les réponses adressent-elles précisément la question ?")
+    if relev >= 0.75:
+        print(f"       Bien : réponses ciblées et directes.")
+    elif relev >= 0.55:
+        print(f"       Moyen : tendance à sur-expliquer ou dériver — raccourcir les réponses.")
+    else:
+        print(f"       Faible : réponses hors-sujet — revoir le prompt synthesis.")
+
+    print(f"  Context Precision   : {prec:.3f}  {_bar(prec)}{_flag(prec, good=0.6, warn=0.4)}")
+    print(f"    → Les chunks récupérés sont-ils pertinents pour la question ?")
+    if prec >= 0.6:
+        print(f"       Bien : la retrieval ramène des passages utiles.")
+    elif prec >= 0.4:
+        print(f"       Moyen : du bruit dans les chunks — envisager top-k plus petit ou meilleur reranking.")
+    else:
+        print(f"       Faible : mauvaise précision retrieval — revoir hybrid search ou seuils BM25.")
+
+    vals = [v for v in [faith, relev, prec] if v == v]
+    if vals:
+        overall = sum(vals) / len(vals)
+        tier = "🟢 Excellent" if overall >= 0.8 else "🟡 Bon" if overall >= 0.6 else "🔴 À améliorer"
+        print()
+        print(f"  Score global RAGAS  : {overall:.3f}/1.0  ({tier})")
+        print()
+        print("  ── Interprétation & priorités ────────────────────")
+        scores_sorted = sorted(
+            [("Faithfulness", faith), ("Answer Relevancy", relev), ("Context Precision", prec)],
+            key=lambda x: x[1]
+        )
+        print(f"  Levier #1 (plus faible) : {scores_sorted[0][0]} = {scores_sorted[0][1]:.3f}")
+        print(f"  Levier #2              : {scores_sorted[1][0]} = {scores_sorted[1][1]:.3f}")
+        print(f"  Levier #3 (plus fort)  : {scores_sorted[2][0]} = {scores_sorted[2][1]:.3f}")
+        print()
+        # Actionable recommendations based on weakest metric
+        weakest, weakest_val = scores_sorted[0]
+        if weakest == "Context Precision":
+            print("  → Action prioritaire : améliorer la retrieval.")
+            print("    • Réduire top-k de 8 à 5 (moins de bruit)")
+            print("    • Ajuster les poids BM25 / dense dans la fusion RRF")
+            print("    • Filtrer par métadonnée 'theme' si disponible")
+        elif weakest == "Answer Relevancy":
+            print("  → Action prioritaire : affiner le prompt synthesis.")
+            print("    • Demander une réponse plus courte et directe")
+            print("    • Ajouter une règle : 'réponds en 3 phrases max'")
+            print("    • Vérifier que l'intent routing envoie au bon agent")
+        elif weakest == "Faithfulness":
+            print("  → Action prioritaire : réduire les hallucinations.")
+            print("    • Renforcer la règle 'base-toi UNIQUEMENT sur les extraits'")
+            print("    • Baisser la température du modèle synthesis")
+            print("    • Ajouter une étape de vérification post-synthesis")
 
 # Per-theme breakdown
 print()
@@ -281,7 +378,10 @@ print("\n" + "═" * 70 + "\n")
 out_path = args.output or f"data/eval_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
 df_full = pd.DataFrame(results)
 if ragas_scores and "ragas_error" not in ragas_scores:
+    # Store aggregate scores as metadata columns
     for k, v in ragas_scores.items():
-        df_full[f"ragas_{k}"] = v
+        if isinstance(v, float):
+            df_full[f"ragas_{k}"] = v
+    df_full["ragas_n_scored"] = ragas_scores.get("n_scored", 0)
 df_full.to_csv(out_path, index=False)
 print(f"  Results saved → {out_path}\n")
