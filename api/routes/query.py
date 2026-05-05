@@ -31,6 +31,7 @@ async def query(request: QueryRequest):
             answer=answer,
             citations=[Citation(**c) for c in result.get("citations", [])],
             intent=result.get("intent", "lookup"),
+            viz=result.get("viz_output"),
         )
     except Exception as e:
         logger.error(f"Query failed: {e}")

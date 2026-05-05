@@ -138,12 +138,21 @@ def _render_pills(cites: list):
         st.markdown(f'<div style="margin-top:10px">{pills}</div>',
                     unsafe_allow_html=True)
 
+def _render_viz(viz: dict | None):
+    if not viz or not viz.get("fig_json"):
+        return
+    import plotly.io as pio
+    fig = pio.from_json(viz["fig_json"])
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
 for msg in conv["messages"]:
     avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
-        if msg["role"] == "assistant" and msg.get("citations"):
-            _render_pills(msg["citations"])
+        if msg["role"] == "assistant":
+            _render_viz(msg.get("viz"))
+            if msg.get("citations"):
+                _render_pills(msg["citations"])
 
 prefill = st.session_state.pop("pub_prefill", None)
 prompt  = st.chat_input(t("q_chat_input")) or prefill
@@ -166,10 +175,17 @@ if prompt:
                 data      = resp.json()
                 answer    = data["answer"]
                 new_cites = data.get("citations", [])
-            except Exception:
-                answer    = t("error")
+                new_viz   = data.get("viz")
+            except httpx.HTTPStatusError as e:
+                answer    = f"{t('error')}\n\n`HTTP {e.response.status_code}: {e.response.text[:200]}`"
                 new_cites = []
+                new_viz   = None
+            except Exception as e:
+                answer    = f"{t('error')}\n\n`{type(e).__name__}: {str(e)[:200]}`"
+                new_cites = []
+                new_viz   = None
 
+        _render_viz(new_viz)
         st.markdown(answer)
         _render_pills(new_cites)
 
@@ -177,5 +193,6 @@ if prompt:
         "role":      "assistant",
         "content":   answer,
         "citations": new_cites,
+        "viz":       new_viz,
     })
     st.rerun()

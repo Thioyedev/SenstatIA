@@ -218,11 +218,19 @@ if not has_conv:
                 st.session_state["prefill_query"] = q
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
+def _render_viz(viz: dict | None):
+    if not viz or not viz.get("fig_json"):
+        return
+    import plotly.io as pio
+    fig = pio.from_json(viz["fig_json"])
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
 for msg in conv["messages"]:
     avatar = "🧑" if msg["role"] == "user" else "📊"
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
         if msg["role"] == "assistant":
+            _render_viz(msg.get("viz"))
             ts         = msg.get("timestamp", "")
             intent_key = msg.get("intent", "")
             icon, lbl  = intent_map.get(intent_key, ("", ""))
@@ -256,15 +264,19 @@ if prompt:
                 answer    = data["answer"]
                 new_cites = data.get("citations", [])
                 intent    = data.get("intent", "")
+                new_viz   = data.get("viz")
             except httpx.ConnectError:
                 answer    = t["error_conn"]
                 new_cites = []
                 intent    = ""
+                new_viz   = None
             except Exception as e:
                 answer    = t["error_gen"] + str(e)
                 new_cites = []
                 intent    = ""
+                new_viz   = None
 
+        _render_viz(new_viz)
         st.markdown(answer)
         icon, lbl = intent_map.get(intent, ("", ""))
         parts = [now] + ([f"{icon} {lbl}"] if lbl else [])
@@ -277,6 +289,7 @@ if prompt:
         "intent":    intent,
         "timestamp": now,
         "citations": new_cites,
+        "viz":       new_viz,
     })
     st.rerun()
 

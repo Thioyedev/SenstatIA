@@ -78,10 +78,9 @@ for i, (emoji, name, desc, src, color) in enumerate(THEMES[lang]):
     <div class="name">{name}</div>
     <div class="desc">{desc}</div>
     <div class="source">📄 {src}</div>
-    <div class="explore-cta">{t('explore_btn')} →</div>
 </div>
 """, unsafe_allow_html=True)
-        if st.button(f"{t('explore_btn')} {name}", key=f"theme_{i}", use_container_width=True):
+        if st.button(f"{t('explore_btn')} →", key=f"theme_{i}", use_container_width=True):
             st.session_state["theme_query"] = name
             st.switch_page("pages/1_💬_Poser_une_question.py")
 

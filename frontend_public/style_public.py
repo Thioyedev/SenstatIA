@@ -189,43 +189,43 @@ footer                           { visibility: hidden; }
 /* ── Theme cards ──────────────────────────────────────────── */
 .theme-card {
     background: white;
-    border-radius: 14px;
+    border-radius: 14px 14px 0 0;
     padding: 24px 18px 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    cursor: pointer;
-    transition: transform 0.18s, box-shadow 0.18s;
     text-align: center;
     color: #1A1A1A;
+    min-height: 185px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     /* accent border-top set inline per theme */
-}
-.theme-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.13);
 }
 .theme-card .emoji  { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
 .theme-card .name   { font-weight: 700; font-size: 1rem; color: #1A1A2E; margin-bottom: 6px; }
 .theme-card .desc   { font-size: 0.78rem; color: #666; line-height: 1.4; margin-bottom: 10px; }
-.theme-card .source { font-size: 0.69rem; color: #00853F; font-weight: 600; }
-.theme-card .explore-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 14px;
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 0.79rem;
-    font-weight: 600;
-    background: #F0FFF4;
-    color: #00853F;
-    transition: background 0.18s, color 0.18s;
-}
-.theme-card:hover .explore-cta {
-    background: #00853F;
-    color: white;
-}
+.theme-card .source { font-size: 0.69rem; color: #00853F; font-weight: 600; margin-top: auto; }
 
-/* user-select: none prevents text highlight on card click */
-.theme-card { user-select: none; -webkit-user-select: none; }
+/* Explorer button that immediately follows a theme-card — styled as pill, fused to card bottom */
+[data-testid="stElementContainer"]:has(.theme-card) + [data-testid="stElementContainer"] .stButton > button {
+    background: #F0FFF4 !important;
+    color: #00853F !important;
+    border: 1px solid #C6F6D5 !important;
+    border-radius: 0 0 14px 14px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 9px 14px !important;
+    width: 100% !important;
+    margin-top: -4px !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.07) !important;
+    transition: background 0.18s, color 0.18s !important;
+}
+[data-testid="stElementContainer"]:has(.theme-card) + [data-testid="stElementContainer"] .stButton > button:hover {
+    background: #00853F !important;
+    color: white !important;
+    border-color: #00853F !important;
+    box-shadow: 0 6px 18px rgba(0,133,63,0.25) !important;
+}
 
 /* ── Answer box ───────────────────────────────────────────── */
 .answer-box {
@@ -409,52 +409,11 @@ _SIDEBAR_JS = """
         tab.style.display = open ? 'none' : 'flex';
     }
 
-    // ── Theme card click delegation ──────────────────────────────────────────
-    function siblingButton(card) {
-        // Walk up to the direct child of stVerticalBlock
-        var el = card;
-        while (el && el.parentElement &&
-               !el.parentElement.matches('[data-testid="stVerticalBlock"]')) {
-            el = el.parentElement;
-        }
-        if (!el) return null;
-        var next = el.nextElementSibling;
-        while (next) {
-            var btn = next.querySelector('.stButton > button');
-            if (btn) return { container: next.querySelector('.stButton'), btn: btn };
-            next = next.nextElementSibling;
-        }
-        return null;
-    }
-
-    function setupThemeCards() {
-        doc.querySelectorAll('.theme-card').forEach(function(card) {
-            if (card.dataset.clickReady) return;
-            card.dataset.clickReady = '1';
-
-            // Hide the sibling Streamlit button — JS is reliable, CSS :has() is not
-            var found = siblingButton(card);
-            if (found && found.container) {
-                found.container.style.cssText =
-                    'height:0;overflow:hidden;margin:0;padding:0;';
-            }
-
-            // Delegate card click → hidden button
-            card.addEventListener('click', function() {
-                var f = siblingButton(card);
-                if (f) f.btn.click();
-            });
-        });
-    }
-
     // ── Shared observer + init ───────────────────────────────────────────────
-    setTimeout(function() { updateSidebar(); setupThemeCards(); }, 300);
+    setTimeout(updateSidebar, 300);
     setInterval(updateSidebar, 500);
 
-    var observer = new MutationObserver(function() {
-        updateSidebar();
-        setupThemeCards();
-    });
+    var observer = new MutationObserver(updateSidebar);
     observer.observe(doc.body, { childList: true, subtree: true });
 })();
 </script>
