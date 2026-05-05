@@ -2,6 +2,7 @@ import re
 from langgraph.graph import StateGraph, END
 from langgraph.types import Send
 from agents.state import AgentState
+from agents.query_rewriter import query_rewriter
 from agents.router_agent import router_agent
 from agents.retrieval_agent import retrieval_agent
 from agents.trend_agent import trend_agent
@@ -65,6 +66,7 @@ def _route_after_compare(state: AgentState) -> str:
 def build_graph():
     graph = StateGraph(AgentState)
 
+    graph.add_node("query_rewriter", query_rewriter)
     graph.add_node("router",    router_agent)
     graph.add_node("prep_viz",  _prep_viz_query)
     graph.add_node("retrieval", retrieval_agent)
@@ -74,7 +76,8 @@ def build_graph():
     graph.add_node("viz",       viz_agent)
     graph.add_node("synthesis", synthesis_agent)
 
-    graph.set_entry_point("router")
+    graph.set_entry_point("query_rewriter")
+    graph.add_edge("query_rewriter", "router")
     graph.add_conditional_edges("router", _route_after_router,
                                 {"prep_viz": "prep_viz", "retrieval": "retrieval"})
     graph.add_edge("prep_viz", "retrieval")
