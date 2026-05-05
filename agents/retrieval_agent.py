@@ -43,7 +43,8 @@ _SOURCE_RULES: list[tuple[re.Pattern, list[str]]] = [
      ["ses_2022_2023"]),
 ]
 
-TOP_K = 8  # reverted: top-k 5 hurt recall on multi-aspect questions
+TOP_K = 8
+CE_THRESHOLD = 0.0  # ms-marco logit score — chunks below this are off-topic
 
 
 def _detect_source_filter(query: str) -> dict | None:
@@ -121,14 +122,20 @@ def retrieval_agent(state: AgentState) -> dict:
     # 3. Reciprocal Rank Fusion
     fused = _reciprocal_rank_fusion([dense, sparse])[:20]
 
-    # 4. CrossEncoder reranking — keep top TOP_K (reduced from 8 → 5 for precision)
+    # 4. CrossEncoder reranking + score threshold
     if fused:
         ce = _get_cross_encoder()
         pairs = [(query, doc["text"]) for doc in fused]
         ce_scores = ce.predict(pairs)
-        reranked = [doc for _, doc in sorted(
-            zip(ce_scores, fused), key=lambda x: x[0], reverse=True
-        )][:TOP_K]
+        scored = sorted(zip(ce_scores, fused), key=lambda x: x[0], reverse=True)
+
+        # Keep only chunks above CE_THRESHOLD; always keep at least 1
+        above = [(s, d) for s, d in scored if s >= CE_THRESHOLD]
+        reranked = [d for _, d in (above if above else scored[:1])][:TOP_K]
+
+        dropped = len(scored) - len(above)
+        if dropped:
+            logger.debug(f"CE threshold dropped {dropped}/{len(scored)} off-topic chunks (threshold={CE_THRESHOLD})")
     else:
         reranked = []
 
