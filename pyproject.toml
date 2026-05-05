@@ -32,6 +32,7 @@ dependencies = [
     "pydantic>=2.8.0",
     # Frontend
     "streamlit>=1.38.0",
+    "chainlit>=1.3.0",
     # Eval
     "ragas>=0.1.0",
     # Utils
@@ -39,3 +40,10 @@ dependencies = [
     "httpx>=0.27.0",
     "loguru>=0.7.0",
 ]
+
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agents*", "api*", "frontend*", "frontend_public*", "ingestion*", "vectorstore*"]

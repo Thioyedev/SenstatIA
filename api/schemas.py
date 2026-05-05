@@ -9,12 +9,12 @@ class QueryRequest(BaseModel):
 
 
 class Citation(BaseModel):
-    institution: Optional[str]
-    report_name: Optional[str]
-    year: Optional[int]
-    page: Optional[int]
-    url: Optional[str]
-    source_id: Optional[str]
+    institution: Optional[str] = None
+    report_name: Optional[str] = None
+    year: Optional[int] = None
+    page: Optional[int] = None
+    url: Optional[str] = None
+    source_id: Optional[str] = None
 
 
 class QueryResponse(BaseModel):
@@ -22,6 +22,7 @@ class QueryResponse(BaseModel):
     answer: str
     citations: List[Citation]
     intent: str
+    viz: Optional[dict] = None
 
 
 class DocumentInfo(BaseModel):

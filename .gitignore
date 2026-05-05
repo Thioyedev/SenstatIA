@@ -6,10 +6,27 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 data/chroma/
-data/raw/
-data/processed/
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
 notebooks/.ipynb_checkpoints/
 .DS_Store
 *.swo
 *.swp
 data/eval_*.csv
+
+# Claude Code internal
+.claude/
+
+# Auto-generated docs (not source of truth)
+API_DOCUMENTATION.md
+DEPLOYMENT.md
+DEVELOPER_GUIDE.md
+DOCUMENTATION_INDEX.md
+DOCUMENTATION_PACKAGE_REPORT.md
+PROJECT_OVERVIEW.md
+QUICK_REFERENCE.md
+
+# Chainlit (reverted to Streamlit)
+.chainlit/

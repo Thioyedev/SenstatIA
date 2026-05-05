@@ -1,13 +1,52 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
-#MainMenu { visibility: hidden; }
-footer    { visibility: hidden; }
-header    { visibility: hidden; }
+#MainMenu                        { visibility: hidden; }
+footer                           { visibility: hidden; }
+[data-testid="stToolbar"]        { visibility: hidden; }
+[data-testid="stDecoration"]     { display: none; }
+
+/* Transparent header */
+[data-testid="stHeader"] {
+    background: transparent !important;
+    border-bottom: none !important;
+}
+
+/* ── Sidebar collapse button (inside open sidebar) ─────────── */
+[data-testid="stSidebarCollapseButton"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+[data-testid="stSidebarCollapseButton"] button {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 6px !important;
+    cursor: pointer !important;
+    transition: background 0.15s !important;
+}
+[data-testid="stSidebarCollapseButton"] button:hover {
+    background: rgba(255,255,255,0.1) !important;
+}
+[data-testid="stSidebarCollapseButton"] svg {
+    stroke: rgba(255,255,255,0.5) !important;
+    fill: none !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+[data-testid="stSidebarCollapseButton"] button:hover svg {
+    stroke: white !important;
+}
+
+/* Hide Streamlit's expand control — custom JS tab handles it */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] { display: none !important; }
 
 /* ── Background ───────────────────────────────────────────── */
 [data-testid="stAppViewContainer"] { background-color: #F5F7FA; }
@@ -28,27 +67,46 @@ header    { visibility: hidden; }
 [data-testid="stAppViewContainer"] .stMarkdown { color: #1A1A1A; }
 [data-testid="stCaptionContainer"] p { color: #777 !important; }
 
-/* ── Sidebar ──────────────────────────────────────────────── */
+/* ── Sidebar — Claude style ───────────────────────────────── */
 [data-testid="stSidebar"] {
-    background: #1A1A2E;
-    border-right: none;
+    background: #171717 !important;
+    border-right: 1px solid rgba(255,255,255,0.06);
 }
-[data-testid="stSidebar"] * { color: #CBD5E1 !important; }
+[data-testid="stSidebar"] * { color: #ececec !important; }
 [data-testid="stSidebarNav"] a {
     border-radius: 8px;
-    margin: 2px 8px;
-    padding: 8px 12px;
-    font-size: 0.92rem;
+    margin: 1px 8px;
+    padding: 7px 12px;
+    font-size: 0.88rem;
     font-weight: 500;
     transition: background 0.15s;
+    color: rgba(255,255,255,0.72) !important;
 }
-[data-testid="stSidebarNav"] a:hover { background: rgba(255,255,255,0.08) !important; }
+[data-testid="stSidebarNav"] a:hover { background: rgba(255,255,255,0.08) !important; color: white !important; }
 [data-testid="stSidebarNav"] a[aria-selected="true"] {
-    background: rgba(0,133,63,0.3) !important;
+    background: rgba(255,255,255,0.12) !important;
     color: white !important;
     font-weight: 600;
-    border-left: 3px solid #00853F;
-    padding-left: 9px;
+}
+
+/* Chat history */
+.conv-item {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.65);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 1px 0;
+}
+.conv-group-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35) !important;
+    padding: 12px 12px 4px 12px;
 }
 
 /* ── Hero ─────────────────────────────────────────────────── */
@@ -126,25 +184,48 @@ header    { visibility: hidden; }
 .fact-card .topic { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: #00853F; margin-bottom: 6px; }
 .fact-card .stat  { font-size: 2rem; font-weight: 800; color: #1A1A2E; line-height: 1.1; }
 .fact-card .desc  { font-size: 0.82rem; color: #555; margin-top: 4px; line-height: 1.4; }
-.fact-card .src   { font-size: 0.68rem; color: #aaa; margin-top: 10px; font-style: italic; }
+.fact-card .src   { font-size: 0.68rem; color: #666; margin-top: 10px; font-style: italic; }
 
 /* ── Theme cards ──────────────────────────────────────────── */
 .theme-card {
     background: white;
-    border-radius: 14px;
-    padding: 22px 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    cursor: pointer;
-    transition: all 0.15s;
+    border-radius: 14px 14px 0 0;
+    padding: 24px 18px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
     text-align: center;
-    height: 100%;
     color: #1A1A1A;
+    min-height: 185px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    /* accent border-top set inline per theme */
 }
-.theme-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-.theme-card .emoji { font-size: 2.2rem; margin-bottom: 10px; }
-.theme-card .name  { font-weight: 700; font-size: 1rem; color: #1A1A2E; }
-.theme-card .desc  { font-size: 0.78rem; color: #777; margin-top: 4px; line-height: 1.4; }
-.theme-card .count { font-size: 0.7rem; color: #00853F; font-weight: 600; margin-top: 10px; }
+.theme-card .emoji  { font-size: 2.2rem; margin-bottom: 12px; line-height: 1; }
+.theme-card .name   { font-weight: 700; font-size: 1rem; color: #1A1A2E; margin-bottom: 6px; }
+.theme-card .desc   { font-size: 0.78rem; color: #666; line-height: 1.4; margin-bottom: 10px; }
+.theme-card .source { font-size: 0.69rem; color: #00853F; font-weight: 600; margin-top: auto; }
+
+/* Explorer button that immediately follows a theme-card — styled as pill, fused to card bottom */
+[data-testid="stElementContainer"]:has(.theme-card) + [data-testid="stElementContainer"] .stButton > button {
+    background: #F0FFF4 !important;
+    color: #00853F !important;
+    border: 1px solid #C6F6D5 !important;
+    border-radius: 0 0 14px 14px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 9px 14px !important;
+    width: 100% !important;
+    margin-top: -4px !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.07) !important;
+    transition: background 0.18s, color 0.18s !important;
+}
+[data-testid="stElementContainer"]:has(.theme-card) + [data-testid="stElementContainer"] .stButton > button:hover {
+    background: #00853F !important;
+    color: white !important;
+    border-color: #00853F !important;
+    box-shadow: 0 6px 18px rgba(0,133,63,0.25) !important;
+}
 
 /* ── Answer box ───────────────────────────────────────────── */
 .answer-box {
@@ -173,6 +254,15 @@ header    { visibility: hidden; }
     margin: 3px 3px 0 0;
 }
 
+/* ── Sticky chat input ────────────────────────────────────── */
+[data-testid="stBottom"] {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 99 !important;
+    background: #F5F7FA !important;
+    padding: 8px 0 12px 0 !important;
+}
+
 /* ── Chat ─────────────────────────────────────────────────── */
 [data-testid="stChatMessage"] {
     background: white !important;
@@ -193,48 +283,170 @@ header    { visibility: hidden; }
 
 /* ── Buttons ──────────────────────────────────────────────── */
 .stButton > button {
-    border-radius: 10px;
+    border-radius: 20px;
     font-weight: 500;
-    font-size: 0.88rem;
-    padding: 8px 16px;
+    font-size: 0.84rem;
+    padding: 7px 16px;
     transition: all 0.15s;
     border: 1.5px solid #e0e0e0;
     background: white;
-    color: #1A1A1A;
+    color: #333;
+    text-align: left;
 }
 .stButton > button:hover {
     border-color: #00853F;
     color: #00853F;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(0,133,63,0.15);
+    background: #F0FFF4;
+    box-shadow: 0 2px 8px rgba(0,133,63,0.12);
+}
+
+/* Sidebar buttons — dark theme override */
+[data-testid="stSidebar"] .stButton > button {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.14) !important;
+    color: rgba(255,255,255,0.85) !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(255,255,255,0.16) !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    color: white !important;
+    box-shadow: none !important;
+}
+[data-testid="stSidebar"] .stButton > button[kind="primary"] {
+    background: #00853F !important;
+    border-color: #00853F !important;
+    color: white !important;
 }
 
 /* ── Section label ────────────────────────────────────────── */
 .section-lbl {
-    font-size: 0.7rem; font-weight: 700;
+    font-size: 0.68rem; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
-    color: #999; margin: 24px 0 12px 0;
+    color: #666; margin: 0 0 10px 0;
 }
-.divider { border: none; border-top: 1px solid #E8E8E8; margin: 20px 0; }
+.divider { border: none; border-top: 1px solid #E8E8E8; margin: 16px 0; }
+
+/* ── Page banner ──────────────────────────────────────────── */
+.page-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    border-left: 4px solid #00853F;
+}
+.page-banner-icon { font-size: 1.9rem; line-height: 1; }
+.page-banner-title { font-size: 1.15rem; font-weight: 700; color: #1A1A2E; margin-bottom: 2px; }
+.page-banner-sub { font-size: 0.79rem; color: #777; line-height: 1.4; }
+
+/* ── Hide Streamlit header anchor icons ───────────────────── */
+h1 a, h2 a, h3 a { display: none !important; }
+
+/* ── Inline source pill ───────────────────────────────────── */
+.source-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #F0FFF4;
+    border: 1px solid #C6F6D5;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    color: #2D6A4F;
+    font-weight: 500;
+    margin: 2px 3px 0 0;
+}
 </style>
+"""
+
+
+_SIDEBAR_JS = """
+<script>
+(function() {
+    var doc = window.parent.document;
+
+    // ── Sidebar tab ──────────────────────────────────────────────────────────
+    var ID = 'senstat-sidebar-tab';
+
+    function makeSidebarTab() {
+        if (doc.getElementById(ID)) return doc.getElementById(ID);
+        var btn = doc.createElement('button');
+        btn.id    = ID;
+        btn.title = 'Ouvrir la sidebar';
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" '
+            + 'viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" '
+            + 'stroke-linecap="round" stroke-linejoin="round">'
+            + '<rect x="3" y="3" width="18" height="18" rx="2"/>'
+            + '<line x1="9" y1="3" x2="9" y2="21"/></svg>';
+        btn.style.cssText = [
+            'position:fixed', 'left:0', 'top:50%', 'transform:translateY(-50%)',
+            'z-index:2147483647', 'background:#1A1A2E', 'border:none',
+            'border-radius:0 8px 8px 0', 'width:28px', 'height:52px',
+            'cursor:pointer', 'display:none', 'align-items:center',
+            'justify-content:center', 'box-shadow:3px 0 14px rgba(0,0,0,0.6)',
+            'padding:0', 'outline:none'
+        ].join(';');
+        btn.onmouseenter = function() { btn.style.background = '#252545'; };
+        btn.onmouseleave = function() { btn.style.background = '#1A1A2E'; };
+        btn.onclick = function(e) {
+            e.stopPropagation();
+            var exp = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button');
+            if (exp) { exp.click(); return; }
+            var col = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            if (col) col.click();
+        };
+        doc.body.appendChild(btn);
+        return btn;
+    }
+
+    function updateSidebar() {
+        var tab     = makeSidebarTab();
+        var sidebar = doc.querySelector('[data-testid="stSidebar"]');
+        var open    = sidebar && sidebar.getBoundingClientRect().width > 60;
+        tab.style.display = open ? 'none' : 'flex';
+    }
+
+    // ── Shared observer + init ───────────────────────────────────────────────
+    setTimeout(updateSidebar, 300);
+    setInterval(updateSidebar, 500);
+
+    var observer = new MutationObserver(updateSidebar);
+    observer.observe(doc.body, { childList: true, subtree: true });
+})();
+</script>
 """
 
 
 def inject_css():
     st.markdown(CSS, unsafe_allow_html=True)
+    components.html(_SIDEBAR_JS, height=0)
 
 
 def sidebar_brand():
+    if "lang" not in st.session_state:
+        st.session_state.lang = "fr"
+
     st.sidebar.markdown("""
-<div style="padding:20px 16px 12px 16px; text-align:center;">
-    <div style="font-size:1.8rem;">🇸🇳</div>
-    <div style="font-size:1.2rem; font-weight:700; color:white; margin-top:6px;">SenStat</div>
-    <div style="font-size:0.68rem; color:rgba(255,255,255,0.4); margin-top:3px;">
-        Statistiques officielles du Sénégal
-    </div>
+<div style="padding:16px 12px 8px 12px; display:flex; align-items:center; gap:10px;">
+    <span style="font-size:1.3rem;">🇸🇳</span>
+    <span style="font-size:1rem; font-weight:700; color:white;">SenStat</span>
 </div>
-<hr style="border-color:rgba(255,255,255,0.08); margin:0 16px 8px 16px;">
+<hr style="border-color:rgba(255,255,255,0.08); margin:0 12px 6px 12px;">
 """, unsafe_allow_html=True)
+
+    lc1, lc2 = st.sidebar.columns(2)
+    if lc1.button("🇫🇷 FR", use_container_width=True, key="sb_lang_fr",
+                  type="primary" if st.session_state.lang == "fr" else "secondary"):
+        st.session_state.lang = "fr"
+        st.rerun()
+    if lc2.button("🇬🇧 EN", use_container_width=True, key="sb_lang_en",
+                  type="primary" if st.session_state.lang == "en" else "secondary"):
+        st.session_state.lang = "en"
+        st.rerun()
+    st.sidebar.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 
 def section_lbl(text: str):

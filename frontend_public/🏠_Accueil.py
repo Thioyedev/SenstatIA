@@ -7,6 +7,7 @@ load_dotenv()
 
 import streamlit as st
 from frontend_public.style_public import inject_css, sidebar_brand, section_lbl, fact_card
+from frontend_public.i18n import t, THEMES
 
 st.set_page_config(
     page_title="SenStat — Statistiques du Sénégal",
@@ -17,101 +18,98 @@ st.set_page_config(
 inject_css()
 sidebar_brand()
 
-# ── Hero ────────────────────────────────────────────────────────────────────────
-st.markdown("""
+lang = st.session_state.get("lang", "fr")
+
+# ── Hero ─────────────────────────────────────────────────────────────────────────
+st.markdown(f"""
 <div class="hero-public">
     <div style="position:relative; z-index:1;">
-        <div class="eyebrow">🇸🇳 Données officielles du Sénégal</div>
-        <h1>Les chiffres officiels,<br>à portée de main.</h1>
-        <div class="sub">
-            Posez vos questions sur la population, l'économie, la santé ou
-            la pauvreté au Sénégal — et obtenez une réponse tirée directement
-            des rapports officiels, avec la source exacte.
-        </div>
+        <div class="eyebrow">{t("home_eyebrow")}</div>
+        <h1>{t("home_title")}</h1>
+        <div class="sub">{t("home_sub")}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── CTA buttons ─────────────────────────────────────────────────────────────────
+# ── CTA ──────────────────────────────────────────────────────────────────────────
 c1, c2, c3 = st.columns([2, 2, 5])
 with c1:
-    if st.button("💬 Poser une question", use_container_width=True, type="primary"):
+    if st.button(t("home_cta_ask"), use_container_width=True, type="primary"):
         st.switch_page("pages/1_💬_Poser_une_question.py")
 with c2:
-    if st.button("📋 Parcourir les thèmes", use_container_width=True):
+    if st.button(t("home_cta_themes"), use_container_width=True):
         st.switch_page("pages/2_📋_Thèmes.py")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Key facts ────────────────────────────────────────────────────────────────────
-section_lbl("Le Sénégal en chiffres clés")
+# ── Key facts ─────────────────────────────────────────────────────────────────────
+section_lbl(t("home_key_facts"))
+
+FACTS = {
+    "fr": [
+        ("Population", "17,7 M",  "habitants au Sénégal en 2023",               "RGPH-5, ANSD 2023"),
+        ("Pauvreté",   "37,5 %",  "des Sénégalais vivent sous le seuil de pauvreté", "EHCVM 2021-2022, ANSD"),
+        ("Croissance", "+8,3 %",  "de croissance du PIB prévue en 2024",         "SES 2022-2023, ANSD"),
+        ("Chômage",    "23,2 %",  "taux de chômage au sens du BIT (2023)",       "RGPH-5, ANSD 2023"),
+    ],
+    "en": [
+        ("Population", "17.7 M",  "inhabitants in Senegal in 2023",              "RGPH-5, ANSD 2023"),
+        ("Poverty",    "37.5 %",  "of Senegalese live below the poverty line",   "EHCVM 2021-2022, ANSD"),
+        ("Growth",     "+8.3 %",  "projected GDP growth in 2024 (oil & gas)",    "SES 2022-2023, ANSD"),
+        ("Unemployment","23.2 %", "unemployment rate (ILO definition, 2023)",    "RGPH-5, ANSD 2023"),
+    ],
+}
+
 c1, c2, c3, c4 = st.columns(4, gap="small")
-with c1:
-    fact_card("Population", "17,7 M", "habitants au Sénégal en 2023", "RGPH-5, ANSD 2023")
-with c2:
-    fact_card("Pauvreté", "37,5 %", "des Sénégalais vivent sous le seuil de pauvreté", "EHCVM 2021-2022, ANSD")
-with c3:
-    fact_card("Croissance", "+8,3 %", "de croissance du PIB prévue en 2024 (pétrole/gaz)", "SES 2022-2023, ANSD")
-with c4:
-    fact_card("Chômage", "23,2 %", "taux de chômage au sens du BIT (2023)", "RGPH-5, ANSD 2023")
+for col, (topic, stat, desc, src) in zip([c1, c2, c3, c4], FACTS[lang]):
+    with col:
+        fact_card(topic, stat, desc, src)
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
-# ── Themes ───────────────────────────────────────────────────────────────────────
-section_lbl("Explorer par thème")
-
-THEMES = [
-    ("👥", "Population",  "Démographie, régions, ménages, migrations",     "RGPH-5 2023"),
-    ("💰", "Pauvreté",    "Inégalités, conditions de vie, accès aux services", "EHCVM 2021-2022"),
-    ("📈", "Économie",    "PIB, emploi, secteurs, croissance",              "SES 2022-2023"),
-    ("🏥", "Santé",       "Mortalité, nutrition, accès aux soins",          "EDS + SES 2023"),
-    ("🎓", "Éducation",   "Scolarisation, alphabétisation, formation",      "SES 2022-2023"),
-    ("🌾", "Agriculture", "Productions, filières, sécurité alimentaire",    "SES 2022-2023"),
-]
-
+# ── Themes ────────────────────────────────────────────────────────────────────────
+section_lbl(t("home_explore"))
 cols = st.columns(3, gap="small")
-for i, (emoji, name, desc, src) in enumerate(THEMES):
+for i, (emoji, name, desc, src, color) in enumerate(THEMES[lang]):
     with cols[i % 3]:
         st.markdown(f"""
-<div class="theme-card">
+<div class="theme-card" style="border-top: 3px solid {color};">
     <div class="emoji">{emoji}</div>
     <div class="name">{name}</div>
     <div class="desc">{desc}</div>
-    <div class="count">📄 {src}</div>
+    <div class="source">📄 {src}</div>
 </div>
 """, unsafe_allow_html=True)
-        if st.button(f"Explorer {name}", key=f"theme_{i}", use_container_width=True):
+        if st.button(f"{t('explore_btn')} →", key=f"theme_{i}", use_container_width=True):
             st.session_state["theme_query"] = name
             st.switch_page("pages/1_💬_Poser_une_question.py")
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
-# ── How it works ─────────────────────────────────────────────────────────────────
-section_lbl("Comment ça marche ?")
+# ── How it works ──────────────────────────────────────────────────────────────────
+section_lbl(t("home_how"))
 c1, c2, c3 = st.columns(3, gap="small")
-
-for col, (n, icon, title, desc) in zip([c1, c2, c3], [
-    ("1", "💬", "Posez votre question",
-     "En français, librement. Pas besoin de connaître le nom du rapport."),
-    ("2", "🔍", "Nous cherchons dans les sources officielles",
-     "Notre système consulte les rapports ANSD, DPEE, BCEAO — pas Internet."),
-    ("3", "📎", "Vous obtenez la réponse avec sa source",
-     "Chaque chiffre est accompagné du rapport et de la page d'origine."),
-]):
+steps = [
+    ("💬", t("home_step1_n"), t("home_step1_title"), t("home_step1_desc")),
+    ("🔍", t("home_step2_n"), t("home_step2_title"), t("home_step2_desc")),
+    ("📎", t("home_step3_n"), t("home_step3_title"), t("home_step3_desc")),
+]
+for col, (icon, n, title, desc) in zip([c1, c2, c3], steps):
     with col:
         st.markdown(f"""
-<div class="fact-card" style="border-bottom:none; border-top:3px solid #00853F; text-align:center; padding:24px 16px;">
-    <div style="font-size:2rem; margin-bottom:8px;">{icon}</div>
-    <div style="font-size:0.68rem; font-weight:700; color:#00853F; letter-spacing:0.8px; margin-bottom:6px;">ÉTAPE {n}</div>
-    <div style="font-weight:700; font-size:0.97rem; color:#1A1A2E; margin-bottom:8px;">{title}</div>
-    <div style="font-size:0.82rem; color:#666; line-height:1.5;">{desc}</div>
+<div class="fact-card" style="border-bottom:none;border-top:3px solid #00853F;
+     text-align:center;padding:24px 16px;">
+    <div style="font-size:2rem;margin-bottom:8px;">{icon}</div>
+    <div style="font-size:0.68rem;font-weight:700;color:#00853F;letter-spacing:0.8px;margin-bottom:6px;">{n}</div>
+    <div style="font-weight:700;font-size:0.97rem;color:#1A1A2E;margin-bottom:8px;">{title}</div>
+    <div style="font-size:0.82rem;color:#666;line-height:1.5;">{desc}</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Footer ───────────────────────────────────────────────────────────────────────
+# ── Footer ────────────────────────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
-st.markdown("""
-<div style="text-align:center; color:#ccc; font-size:0.73rem; padding:8px 0 16px 0;">
-    Données issues de l'ANSD, DPEE et BCEAO · SenStat ne remplace pas les rapports officiels
+st.markdown(f"""
+<div style="text-align:center;color:#ccc;font-size:0.73rem;padding:8px 0 16px 0;">
+    {t("home_footer")}
 </div>
 """, unsafe_allow_html=True)

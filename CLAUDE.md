@@ -192,29 +192,53 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 ## Development Phases
 
-### Phase 1 — Foundation ✓ (Week 1-2)
-- [x] Repo setup, pyproject.toml
-- [x] PDF extraction pipeline
-- [x] ChromaDB setup
-- [x] Ingestion pipeline
-- [ ] Basic retrieval agent
-- [ ] FastAPI endpoint `/query`
-- [ ] Streamlit MVP
+### Phase 1 — Foundation ✓ (Complete)
+- [x] Repo setup, pyproject.toml, Dockerfile, docker-compose
+- [x] PDF extraction pipeline (`pdf_extractor.py`, `table_extractor.py`)
+- [x] ChromaDB setup (`chroma_store.py`)
+- [x] Ingestion pipeline (`pipeline.py`, 4 sources registered)
+- [x] Basic retrieval agent + FastAPI `/query` endpoint
+- [x] Streamlit MVP — two frontends: public (`frontend_public/`) + pro (`frontend/`)
+- [x] Bilingual public frontend (FR/EN) with theme cards, FAQ, search
+- [ ] OCR extractor (`ocr_extractor.py` — not yet implemented)
+- [ ] Table chunker (`table_chunker.py` — not yet implemented)
+- [ ] Scrapers (`ingestion/scrapers/` — stub only, no automated fetching)
 
-### Phase 2 — Multi-Agent (Week 3-4)
-- [ ] LangGraph graph: router + retrieval + synthesis
-- [ ] Hybrid search (BM25 + dense) + CrossEncoder reranking
-- [ ] Trend agent, Compare agent
-- [ ] Citation formatter
+### Phase 2 — Multi-Agent ✓ (Complete)
+- [x] LangGraph `StateGraph`: router → retrieval → [trend|compare] → synthesis
+- [x] Hybrid search: dense (ChromaDB) + BM25 + Reciprocal Rank Fusion
+- [x] CrossEncoder reranking (`ms-marco-MiniLM-L-6-v2`, top 20 → top 8)
+- [x] Trend agent: time-series extraction, CAGR, trend direction (Haiku)
+- [x] Compare agent: entity extraction, gap calculation, insight (Haiku)
+- [x] Conditional graph routing: intent → correct specialist agent
+- [x] Citation formatter: deduped by (institution, report_name), rendered as pills
+- [x] Inline citation stripping (prompt rule + regex safety net in API)
+- [x] RAGAS evaluation pipeline + golden dataset (20 questions, 6 themes)
 
-### Phase 3 — Advanced Agents (Week 5-6)
-- [ ] Compute agent (Python sandbox)
-- [ ] Viz agent (Plotly + source watermark)
-- [ ] Parallel agent execution via Send API
-- [ ] Qdrant migration
+### Phase 3 — Advanced Agents (Next)
+- [ ] Compute agent — Python sandbox via `subprocess` for projections/ratios
+- [ ] Viz agent — Plotly charts with source watermark, returned as HTML/JSON
+- [ ] Parallel agent execution — LangGraph Send API for trend+compare simultaneously
+- [ ] Router cost optimisation — switch router from Sonnet to Haiku (simple classification)
+- [ ] Qdrant migration (`qdrant_store.py`) for production vector store
+- [ ] Unit + integration tests (`tests/unit/`, `tests/integration/` — currently empty stubs)
 
-### Phase 4 — Production (Week 7-8)
-- [ ] GitHub Actions CI/CD
-- [ ] Docker deployment
-- [ ] RAGAS evaluation
-- [ ] Frontend v2 (React)
+### Phase 4 — Production
+- [ ] GitHub Actions CI/CD (lint → test → build → deploy)
+- [ ] Docker hardening: health checks on frontend services, non-root user
+- [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
+- [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
+- [ ] Scrapers: automate PDF fetching from ANSD, DPEE, BCEAO, World Bank API
+
+---
+
+## Known Gaps (as of Phase 2 completion)
+
+| Gap | Impact | Fix in |
+|---|---|---|
+| `compute` / `viz` intents fall through to synthesis without specialist | Compute/viz queries get generic text answer | Phase 3 |
+| Router uses Sonnet for intent classification (overkill) | ~2× higher cost per query | Phase 3 |
+| No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
+| OCR fallback missing → scanned PDFs silently skipped | Poor recall on older ANSD reports | Phase 3 |
+| Zero tests → no regression safety net | Risk when refactoring agents | Phase 3 |
+| RAGAS eval pre-dates trend/compare agents | Eval scores don't reflect current pipeline | Re-run after Phase 3 |

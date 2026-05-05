@@ -5,10 +5,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
-import streamlit as st
+import os
+import uuid
 import httpx
+import streamlit as st
 from datetime import datetime
-from frontend.style import inject_css, sidebar_brand, empty_state
+from frontend.style import inject_css, sidebar_brand, section_label
 
 st.set_page_config(
     page_title="Assistant — SenStat",
@@ -17,151 +19,282 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_css()
-sidebar_brand()
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 INTENT_LABELS = {
-    "lookup":  ("🔎", "Recherche ponctuelle"),
-    "trend":   ("📈", "Analyse de tendance"),
-    "compare": ("⚖️", "Comparaison"),
-    "compute": ("🧮", "Calcul statistique"),
-    "viz":     ("📊", "Visualisation"),
-    "mixed":   ("🔀", "Requête mixte"),
+    "fr": {
+        "lookup":  ("🔎", "Recherche ponctuelle"),
+        "trend":   ("📈", "Tendance"),
+        "compare": ("⚖️",  "Comparaison"),
+        "compute": ("🧮", "Calcul"),
+        "viz":     ("📊", "Visualisation"),
+        "mixed":   ("🔀", "Requête mixte"),
+    },
+    "en": {
+        "lookup":  ("🔎", "Quick lookup"),
+        "trend":   ("📈", "Trend analysis"),
+        "compare": ("⚖️",  "Comparison"),
+        "compute": ("🧮", "Calculation"),
+        "viz":     ("📊", "Visualization"),
+        "mixed":   ("🔀", "Mixed query"),
+    },
 }
 
-# ── State ──────────────────────────────────────────────────────────────────────
-if "messages"       not in st.session_state: st.session_state.messages       = []
-if "last_citations" not in st.session_state: st.session_state.last_citations = []
-if "last_intent"    not in st.session_state: st.session_state.last_intent    = ""
+T = {
+    "fr": {
+        "banner_title": "Assistant Statistique",
+        "banner_sub":   "Données officielles du Sénégal · ANSD · DPEE · BCEAO · Réponses sourcées et vérifiées",
+        "new_conv":     "✏️  Nouvelle conversation",
+        "today":        "Aujourd'hui",
+        "previous":     "Précédentes",
+        "quick_label":  "Questions fréquentes — cliquez pour une réponse rapide",
+        "chat_input":   "Ex: Quel est le taux de pauvreté en 2021 ?",
+        "spinner":      "Recherche dans les sources officielles…",
+        "sources":      "📎 Sources citées",
+        "questions":    "questions",
+        "sources_count":"sources",
+        "verified":     "✅ Données vérifiées",
+        "verified_desc":"Réponses issues des rapports officiels ANSD, DPEE et BCEAO uniquement.",
+        "clear":        "🗑 Effacer cette conversation",
+        "error_conn":   "⚠️ Impossible de contacter l'API. Vérifiez que le serveur tourne sur le port 8000.",
+        "error_gen":    "⚠️ Erreur : ",
+    },
+    "en": {
+        "banner_title": "Statistical Assistant",
+        "banner_sub":   "Official data from Senegal · ANSD · DPEE · BCEAO · Sourced and verified answers",
+        "new_conv":     "✏️  New conversation",
+        "today":        "Today",
+        "previous":     "Earlier",
+        "quick_label":  "Frequent questions — click for a quick answer",
+        "chat_input":   "E.g.: What is the poverty rate in 2021?",
+        "spinner":      "Searching official sources…",
+        "sources":      "📎 Sources cited",
+        "questions":    "questions",
+        "sources_count":"sources",
+        "verified":     "✅ Verified data",
+        "verified_desc":"Answers sourced exclusively from official ANSD, DPEE and BCEAO reports.",
+        "clear":        "🗑 Clear this conversation",
+        "error_conn":   "⚠️ Cannot reach the API. Make sure the server is running on port 8000.",
+        "error_gen":    "⚠️ Error: ",
+    },
+}
 
-# ── Layout ─────────────────────────────────────────────────────────────────────
-col_chat, col_side = st.columns([3, 1], gap="medium")
+QUICK = {
+    "fr": [
+        ("🏙️", "Population totale du Sénégal en 2023 ?"),
+        ("📉", "Taux de pauvreté au Sénégal en 2021 ?"),
+        ("💼", "Taux de chômage au Sénégal ?"),
+        ("📈", "Taux de croissance du PIB ?"),
+        ("💧", "Accès à l'eau potable en milieu rural ?"),
+        ("📚", "Taux d'alphabétisation au Sénégal ?"),
+    ],
+    "en": [
+        ("🏙️", "Total population of Senegal in 2023?"),
+        ("📉", "Poverty rate in Senegal in 2021?"),
+        ("💼", "Unemployment rate in Senegal?"),
+        ("📈", "GDP growth rate in Senegal?"),
+        ("💧", "Access to clean water in rural areas?"),
+        ("📚", "Literacy rate in Senegal?"),
+    ],
+}
 
-# ══ CHAT COLUMN ════════════════════════════════════════════════════════════════
-with col_chat:
-    st.markdown("<h2 style='margin-bottom:2px;'>💬 Assistant Statistique</h2>",
-                unsafe_allow_html=True)
-    st.caption("Posez vos questions sur les données officielles du Sénégal")
-    st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
+# ── Language ────────────────────────────────────────────────────────────────────
+if "lang" not in st.session_state:
+    st.session_state.lang = "fr"
 
-    # Message history
-    if not st.session_state.messages:
-        empty_state("📊",
-            "Commencez par poser une question ou choisissez un exemple sur la page d'accueil.")
+lang = st.session_state.lang
+t    = T[lang]
+
+# ── Conversation state ──────────────────────────────────────────────────────────
+def new_conversation():
+    cid = str(uuid.uuid4())
+    st.session_state.conversations[cid] = {
+        "title":     "Nouvelle conversation",
+        "messages":  [],
+        "citations": [],
+        "timestamp": datetime.now(),
+    }
+    st.session_state.current_conv_id = cid
+
+if "conversations" not in st.session_state:
+    st.session_state.conversations = {}
+    new_conversation()
+
+if "current_conv_id" not in st.session_state or \
+        st.session_state.current_conv_id not in st.session_state.conversations:
+    new_conversation()
+
+cid  = st.session_state.current_conv_id
+conv = st.session_state.conversations[cid]
+
+# ── Sidebar (toggle is inside sidebar_brand) ────────────────────────────────────
+sidebar_brand()
+
+if st.sidebar.button(t["new_conv"], use_container_width=True):
+    new_conversation()
+    st.rerun()
+
+st.sidebar.markdown(
+    "<hr style='border-color:rgba(255,255,255,0.08);margin:8px 12px;'>",
+    unsafe_allow_html=True,
+)
+
+today      = datetime.now().date()
+today_convs, older_convs = [], []
+for c_id, c in reversed(list(st.session_state.conversations.items())):
+    if not c["messages"]:
+        continue
+    if c["timestamp"].date() == today:
+        today_convs.append((c_id, c))
     else:
-        for msg in st.session_state.messages:
-            avatar = "🧑" if msg["role"] == "user" else "📊"
-            with st.chat_message(msg["role"], avatar=avatar):
-                st.markdown(msg["content"])
-                if msg["role"] == "assistant":
-                    ts = msg.get("timestamp", "")
-                    intent_key = msg.get("intent", "")
-                    intent_icon, intent_label = INTENT_LABELS.get(intent_key, ("", ""))
-                    meta_parts = []
-                    if ts: meta_parts.append(ts)
-                    if intent_label: meta_parts.append(f"{intent_icon} {intent_label}")
-                    if meta_parts:
-                        st.caption("  ·  ".join(meta_parts))
+        older_convs.append((c_id, c))
 
-    # Prefill from home demo
-    prefill = st.session_state.pop("prefill_query", None)
-    prompt  = st.chat_input("Ex: Quel est le taux de pauvreté en 2021 ?") or prefill
+def render_conv_list(items):
+    for c_id, c in items:
+        label  = c["title"][:38] + "…" if len(c["title"]) > 38 else c["title"]
+        active = c_id == st.session_state.current_conv_id
+        if st.sidebar.button(label, key=f"conv_{c_id}",
+                             use_container_width=True,
+                             type="primary" if active else "secondary"):
+            st.session_state.current_conv_id = c_id
+            st.rerun()
 
-    if prompt:
-        now = datetime.now().strftime("%H:%M")
-        st.session_state.messages.append({"role": "user", "content": prompt})
+if today_convs:
+    st.sidebar.markdown(
+        f"<div class='conv-group-label'>{t['today']}</div>",
+        unsafe_allow_html=True,
+    )
+    render_conv_list(today_convs)
 
-        with st.chat_message("user", avatar="🧑"):
-            st.markdown(prompt)
+if older_convs:
+    st.sidebar.markdown(
+        f"<div class='conv-group-label'>{t['previous']}</div>",
+        unsafe_allow_html=True,
+    )
+    render_conv_list(older_convs)
 
-        with st.chat_message("assistant", avatar="📊"):
-            with st.spinner("Recherche dans les sources officielles…"):
-                try:
-                    resp = httpx.post(
-                        f"{API_URL}/query",
-                        json={"query": prompt},
-                        timeout=90.0,
-                    )
-                    resp.raise_for_status()
-                    data      = resp.json()
-                    answer    = data["answer"]
-                    citations = data.get("citations", [])
-                    intent    = data.get("intent", "")
-                except httpx.ConnectError:
-                    answer    = "⚠️ Impossible de contacter l'API. Vérifiez que le serveur tourne sur le port 8000."
-                    citations = []
-                    intent    = ""
-                except Exception as e:
-                    answer    = f"⚠️ Erreur : {e}"
-                    citations = []
-                    intent    = ""
-
-            st.markdown(answer)
-            intent_icon, intent_label = INTENT_LABELS.get(intent, ("", ""))
-            meta_parts = [now]
-            if intent_label: meta_parts.append(f"{intent_icon} {intent_label}")
-            st.caption("  ·  ".join(meta_parts))
-
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": answer,
-            "intent": intent,
-            "timestamp": now,
-        })
-        st.session_state.last_citations = citations
-        st.session_state.last_intent    = intent
-        st.rerun()
-
-# ══ SIDE COLUMN ════════════════════════════════════════════════════════════════
-with col_side:
-    # Citations panel
-    st.markdown("#### 📎 Sources citées")
-    citations = st.session_state.get("last_citations", [])
-
-    if not citations:
-        st.markdown("""
-<div style="background:white; border-radius:10px; padding:16px; text-align:center;
-            color:#bbb; font-size:0.83rem; box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-    Les sources apparaîtront<br>après votre première question.
-</div>
-""", unsafe_allow_html=True)
-    else:
-        for c in citations:
-            url_html = (f'<a href="{c["url"]}" target="_blank" '
-                        f'style="color:#00853F;text-decoration:none;">↗</a>'
-                        if c.get("url") else "")
-            st.markdown(f"""
-<div class="citation-card">
-    <div class="source">{c.get("institution","?")} {url_html}</div>
-    <div style="font-size:0.82rem;color:#333;margin:2px 0;">{c.get("report_name","?")}</div>
-    <div class="details">{c.get("year","?")} · page {c.get("page","?")}</div>
-</div>
-""", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Stats panel
-    if st.session_state.messages:
-        n_turns = sum(1 for m in st.session_state.messages if m["role"] == "user")
-        n_cit   = len(citations)
-        st.markdown(f"""
-<div class="card" style="padding:14px; text-align:center;">
-    <div style="display:flex; justify-content:space-around;">
-        <div>
-            <div style="font-size:1.4rem;font-weight:700;color:#00853F;">{n_turns}</div>
-            <div style="font-size:0.72rem;color:#888;">questions</div>
-        </div>
-        <div>
-            <div style="font-size:1.4rem;font-weight:700;color:#00853F;">{n_cit}</div>
-            <div style="font-size:0.72rem;color:#888;">sources citées</div>
-        </div>
+# ── Page banner ──────────────────────────────────────────────────────────────────
+st.markdown(f"""
+<div class="page-banner">
+    <div class="page-banner-icon">📊</div>
+    <div>
+        <div class="page-banner-title">{t['banner_title']}</div>
+        <div class="page-banner-sub">{t['banner_sub']}</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🗑 Effacer la conversation", use_container_width=True):
-            st.session_state.messages       = []
-            st.session_state.last_citations = []
-            st.rerun()
+# ── Helpers ───────────────────────────────────────────────────────────────────────
+def _dedup_citations(cites: list) -> list:
+    seen, out = set(), []
+    for c in cites:
+        key = (c.get("institution"), c.get("report_name"))
+        if key not in seen:
+            seen.add(key)
+            out.append(c)
+    return out
+
+def _render_pills(cites: list):
+    pills = "".join(
+        f'<span class="citation-pill">📎 {c.get("institution","?")} — '
+        f'{c.get("report_name","?")}</span>'
+        for c in _dedup_citations(cites)
+    )
+    if pills:
+        st.markdown(f'<div style="margin-top:8px">{pills}</div>',
+                    unsafe_allow_html=True)
+
+# ── Layout ───────────────────────────────────────────────────────────────────────
+has_conv   = bool(conv["messages"])
+intent_map = INTENT_LABELS[lang]
+
+if not has_conv:
+    section_label(t["quick_label"])
+    scols = st.columns(3, gap="small")
+    for i, (icon, q) in enumerate(QUICK[lang]):
+        with scols[i % 3]:
+            if st.button(f"{icon}  {q}", key=f"quick_{i}", use_container_width=True):
+                st.session_state["prefill_query"] = q
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+def _render_viz(viz: dict | None):
+    if not viz or not viz.get("fig_json"):
+        return
+    import plotly.io as pio
+    fig = pio.from_json(viz["fig_json"])
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+for msg in conv["messages"]:
+    avatar = "🧑" if msg["role"] == "user" else "📊"
+    with st.chat_message(msg["role"], avatar=avatar):
+        st.markdown(msg["content"])
+        if msg["role"] == "assistant":
+            _render_viz(msg.get("viz"))
+            ts         = msg.get("timestamp", "")
+            intent_key = msg.get("intent", "")
+            icon, lbl  = intent_map.get(intent_key, ("", ""))
+            parts = [p for p in [ts, f"{icon} {lbl}" if lbl else ""] if p]
+            if parts:
+                st.caption("  ·  ".join(parts))
+            if msg.get("citations"):
+                _render_pills(msg["citations"])
+
+prefill = st.session_state.pop("prefill_query", None)
+prompt  = st.chat_input(t["chat_input"]) or prefill
+
+if prompt:
+    now = datetime.now().strftime("%H:%M")
+
+    if not conv["messages"]:
+        conv["title"] = prompt[:50]
+
+    conv["messages"].append({"role": "user", "content": prompt})
+
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant", avatar="📊"):
+        with st.spinner(t["spinner"]):
+            try:
+                resp = httpx.post(f"{API_URL}/query",
+                                  json={"query": prompt}, timeout=90.0)
+                resp.raise_for_status()
+                data      = resp.json()
+                answer    = data["answer"]
+                new_cites = data.get("citations", [])
+                intent    = data.get("intent", "")
+                new_viz   = data.get("viz")
+            except httpx.ConnectError:
+                answer    = t["error_conn"]
+                new_cites = []
+                intent    = ""
+                new_viz   = None
+            except Exception as e:
+                answer    = t["error_gen"] + str(e)
+                new_cites = []
+                intent    = ""
+                new_viz   = None
+
+        _render_viz(new_viz)
+        st.markdown(answer)
+        icon, lbl = intent_map.get(intent, ("", ""))
+        parts = [now] + ([f"{icon} {lbl}"] if lbl else [])
+        st.caption("  ·  ".join(parts))
+        _render_pills(new_cites)
+
+    conv["messages"].append({
+        "role":      "assistant",
+        "content":   answer,
+        "intent":    intent,
+        "timestamp": now,
+        "citations": new_cites,
+        "viz":       new_viz,
+    })
+    st.rerun()
+
+st.markdown("<br>", unsafe_allow_html=True)
+if conv["messages"] and st.button(t["clear"], use_container_width=False):
+    conv["messages"] = []
+    conv["title"]    = "Nouvelle conversation"
+    st.rerun()
