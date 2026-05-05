@@ -257,8 +257,14 @@ if prompt:
     with st.chat_message("assistant", avatar="📊"):
         with st.spinner(t["spinner"]):
             try:
+                history = [
+                    {"role": m["role"], "content": m["content"]}
+                    for m in conv["messages"]
+                    if m["role"] in ("user", "assistant")
+                ]
                 resp = httpx.post(f"{API_URL}/query",
-                                  json={"query": prompt}, timeout=90.0)
+                                  json={"query": prompt, "messages": history},
+                                  timeout=90.0)
                 resp.raise_for_status()
                 data      = resp.json()
                 answer    = data["answer"]

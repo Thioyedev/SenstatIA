@@ -2,8 +2,14 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
+class Message(BaseModel):
+    role: str
+    content: str
+
+
 class QueryRequest(BaseModel):
     query: str
+    messages: List[Message] = []
     n_results: int = 8
     filter_source: Optional[str] = None
 

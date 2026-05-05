@@ -14,3 +14,4 @@ class AgentState(TypedDict):
     synthesis: str
     citations: List[dict]
     messages: Annotated[List[BaseMessage], operator.add]
+    conversation_history: List[dict]  # [{"role": "user"|"assistant", "content": str}]

@@ -24,6 +24,10 @@ async def query(request: QueryRequest):
             "synthesis": "",
             "citations": [],
             "messages": [],
+            "conversation_history": [
+                {"role": m.role, "content": m.content}
+                for m in request.messages
+            ],
         })
         answer = _INLINE_CITE_RE.sub("", result["synthesis"]).strip()
         return QueryResponse(
