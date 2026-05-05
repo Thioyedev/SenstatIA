@@ -11,10 +11,11 @@ Tu t'adresses à des citoyens ordinaires — pas à des experts. Ton rôle est d
 ━━━ RÈGLES DE FOND ━━━
 
 1. BASE-TOI UNIQUEMENT sur les extraits fournis ci-dessous. N'invente rien.
-2. NE MET PAS de références entre crochets dans ton texte — ni [ANSD — EHCVM, p.X], ni [1], ni aucune autre notation. Les sources sont affichées séparément sous ta réponse.
-3. Si l'information est absente des extraits, dis-le honnêtement en 2-3 phrases et suggère où chercher.
-4. Si deux sources donnent des chiffres différents, explique simplement pourquoi (révision de méthode, année différente, périmètre différent).
-5. LANGUE : détecte la langue de la question et réponds OBLIGATOIREMENT dans cette même langue.
+2. ZÉRO INTERPOLATION : si un chiffre ou un fait ne figure pas textuellement dans les extraits, ne l'inclus pas dans ta réponse. Pas d'estimation, pas de déduction, pas de connaissance générale. Si tu n'es pas sûr qu'un chiffre vient des extraits, ne le cite pas.
+3. NE MET PAS de références entre crochets dans ton texte — ni [ANSD — EHCVM, p.X], ni [1], ni aucune autre notation. Les sources sont affichées séparément sous ta réponse.
+4. Si l'information est absente des extraits, dis-le honnêtement en 2-3 phrases et suggère où chercher.
+5. Si deux sources donnent des chiffres différents, explique simplement pourquoi (révision de méthode, année différente, périmètre différent).
+6. LANGUE : détecte la langue de la question et réponds OBLIGATOIREMENT dans cette même langue.
    - Question en français → réponse en français
    - Question in English → respond in English
    - Autre langue → réponds en français par défaut
@@ -52,9 +53,29 @@ Question : "Combien d'accidents de la route y a-t-il eu en 2023 ?"
 
 ━━━ EXTRAITS DE SOURCES ━━━
 {chunks}
-
+{structured_data}
 ━━━ QUESTION ━━━
 {query}"""
+
+_TREND_BLOCK = """
+━━━ DONNÉES TEMPORELLES (pré-calculées) ━━━
+Tendance : {trend} | TCAM : {cagr}
+Série : {series}
+Insight : {insight}
+"""
+
+_COMPARE_BLOCK = """
+━━━ DONNÉES DE COMPARAISON (pré-calculées) ━━━
+Entités : {entities}
+Écarts : {gaps}
+Insight : {insight}
+"""
+
+_COMPUTE_BLOCK = """
+━━━ RÉSULTAT DE CALCUL (pré-calculé) ━━━
+Résultat : {result}
+Interprétation : {interpretation}
+"""
 
 
 def _format_chunks(chunks: list[dict]) -> str:
@@ -88,12 +109,51 @@ def _extract_citations(chunks: list[dict]) -> list[dict]:
     return citations
 
 
+def _format_structured(state: AgentState) -> str:
+    parts = []
+    trend = state.get("trend_output")
+    if trend and trend.get("series"):
+        parts.append(_TREND_BLOCK.format(
+            trend=trend.get("trend"),
+            cagr=f"{trend['cagr']:.1%}" if trend.get("cagr") is not None else "N/A",
+            series=", ".join(
+                f"{p['year']}: {p['value']}{p.get('unit','')}" for p in trend["series"]
+            ),
+            insight=trend.get("insight", ""),
+        ))
+    compare = state.get("compare_output")
+    if compare and compare.get("entities"):
+        entities_str = " | ".join(
+            f"{e['name']}: " + ", ".join(
+                f"{v['metric']}={v['value']}{v.get('unit','')}" for v in e["values"]
+            )
+            for e in compare["entities"]
+        )
+        gaps_str = ", ".join(
+            f"{g['metric']}: écart {g['absolute']}{g.get('unit','')} ({g['winner']} en tête)"
+            for g in compare.get("gaps", [])
+        )
+        parts.append(_COMPARE_BLOCK.format(
+            entities=entities_str,
+            gaps=gaps_str or "N/A",
+            insight=compare.get("insight", ""),
+        ))
+    compute = state.get("compute_output")
+    if compute and compute.get("result") is not None:
+        parts.append(_COMPUTE_BLOCK.format(
+            result=compute["result"],
+            interpretation=compute.get("interpretation", ""),
+        ))
+    return "\n".join(parts)
+
+
 def synthesis_agent(state: AgentState) -> dict:
     chunks = state.get("retrieved_chunks", [])
     query = state["query"]
 
     chunks_text = _format_chunks(chunks)
-    prompt = SYNTHESIS_PROMPT.format(chunks=chunks_text, query=query)
+    structured_data = _format_structured(state)
+    prompt = SYNTHESIS_PROMPT.format(chunks=chunks_text, structured_data=structured_data, query=query)
 
     response = _client.messages.create(
         model="claude-sonnet-4-6",

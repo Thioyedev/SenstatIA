@@ -15,3 +15,18 @@ notebooks/.ipynb_checkpoints/
 *.swo
 *.swp
 data/eval_*.csv
+
+# Claude Code internal
+.claude/
+
+# Auto-generated docs (not source of truth)
+API_DOCUMENTATION.md
+DEPLOYMENT.md
+DEVELOPER_GUIDE.md
+DOCUMENTATION_INDEX.md
+DOCUMENTATION_PACKAGE_REPORT.md
+PROJECT_OVERVIEW.md
+QUICK_REFERENCE.md
+
+# Chainlit (reverted to Streamlit)
+.chainlit/
