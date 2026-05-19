@@ -17,8 +17,17 @@ dependencies = [
     # Vector store
     "chromadb>=0.5.0",
     "rank-bm25>=0.2.2",
+    # Qdrant hybrid store (Phase 3 upgrade — USE_QDRANT=true to activate)
+    "qdrant-client>=1.9.0",
+    "fastembed>=0.3.0",
+    # Voyage-3 embeddings (used by QdrantStore)
+    "voyageai>=0.3.0",
     # Reranking
     "sentence-transformers>=3.0.0",
+    # Cohere Rerank v3.5 (USE_COHERE_RERANK=true to activate)
+    "cohere>=5.0.0",
+    # MCP server
+    "mcp>=1.0.0",
     # Agents
     "langgraph>=0.2.0",
     "anthropic>=0.34.0",

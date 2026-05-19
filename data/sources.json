@@ -1,56 +1,758 @@
 [
   {
-    "id": "ansd_rgph5",
-    "name": "RGPH-5 2023 — Recensement Général de la Population",
+    "id": "rgph5_2023",
+    "name": "RGPH 5 — Résultats Définitifs 2023",
     "institution": "ANSD",
-    "url": "https://www.ansd.sn/ressources/rapports/",
-    "type": "census",
+    "pipeline": "pdf_text",
+    "frequency": "decennial",
+    "filename": "Rapport-def-RGPH-5.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/recensement-general-de-la-population-et-de-lhabitat-rgph",
     "language": "fr",
-    "topics": ["population", "démographie", "habitat"]
+    "year": 2023,
+    "status": "indexed",
+    "topics": [
+      "population",
+      "démographie",
+      "ménages",
+      "habitat",
+      "régions",
+      "recensement"
+    ],
+    "note": "Résultats définitifs du 5ème RGPH. Population totale: 17 763 195 habitants.",
+    "indexed_at": "2026-05-18T21:10:32.265783+00:00"
   },
   {
-    "id": "ansd_ehcvm2021",
+    "id": "rgph5_preliminaire",
+    "name": "RGPH 5 — Résultats Préliminaires 2023",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "decennial",
+    "filename": "RGPH5_preliminaire_2023.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/recensement-general-de-la-population-et-de-lhabitat-rgph",
+    "language": "fr",
+    "year": 2023,
+    "status": "excluded",
+    "topics": [
+      "population",
+      "démographie",
+      "ménages",
+      "habitat",
+      "régions",
+      "recensement"
+    ],
+    "indexed_at": "2026-05-18T21:49:46.846468+00:00",
+    "note": "Remplacé par rgph5_2023 (résultats définitifs). Ne pas réindexer."
+  },
+  {
+    "id": "rgph5_economie",
+    "name": "RGPH 5 — Caractéristiques Économiques 2023",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "decennial",
+    "filename": "RGPH5_economie_2024.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/recensement-general-de-la-population-et-de-lhabitat-rgph",
+    "language": "fr",
+    "year": 2023,
+    "status": "indexed",
+    "topics": [
+      "emploi",
+      "activité économique",
+      "chômage",
+      "secteurs",
+      "recensement"
+    ],
+    "note": "Thème emploi/activité du RGPH5. Télécharger manuellement depuis ansd.sn.",
+    "indexed_at": "2026-05-18T21:52:23.457763+00:00"
+  },
+  {
+    "id": "ehcvm_2021",
     "name": "EHCVM 2021 — Enquête Harmonisée sur les Conditions de Vie des Ménages",
     "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "triennial",
+    "filename": "EHCVM_2021.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/enquete-harmonisee-sur-les-conditions-de-vie-des-menages",
+    "language": "fr",
+    "year": 2021,
+    "status": "pending",
+    "topics": [
+      "pauvreté",
+      "conditions de vie",
+      "consommation",
+      "inégalités",
+      "Gini"
+    ],
+    "note": "Taux de pauvreté 37.5% (2021). Télécharger manuellement depuis ansd.sn."
+  },
+  {
+    "id": "ansd_esps_2021",
+    "name": "ESPS 2021-2022 — Enquête de Suivi de la Pauvreté au Sénégal",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "biennial",
+    "filename": "ESPS_2021_2022.pdf",
+    "direct_url": null,
     "url": "https://www.ansd.sn",
-    "type": "survey",
     "language": "fr",
-    "topics": ["pauvreté", "inégalités", "conditions de vie"]
+    "year": 2022,
+    "status": "pending",
+    "topics": [
+      "pauvreté",
+      "conditions de vie",
+      "seuil de pauvreté"
+    ],
+    "note": "Télécharger manuellement depuis ansd.sn."
   },
   {
-    "id": "dpee_bulletin_mensuel",
-    "name": "Bulletins Mensuels de Conjoncture — DPEE",
-    "institution": "DPEE",
-    "url": "https://www.dpee.sn",
-    "type": "monthly_report",
+    "id": "ses_2022_2023",
+    "name": "SES 2022-2023 — Situation Économique et Sociale du Sénégal",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "filename": "SES_2022_2023.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/situation-economique-et-sociale",
     "language": "fr",
-    "topics": ["PIB", "croissance", "conjoncture"]
+    "year": 2023,
+    "status": "pending",
+    "topics": [
+      "économie",
+      "social",
+      "secteurs",
+      "emploi",
+      "éducation",
+      "santé",
+      "agriculture"
+    ],
+    "note": "Rapport annuel de synthèse. Télécharger manuellement depuis ansd.sn."
   },
   {
-    "id": "bceao_rapport_annuel",
-    "name": "Rapport Annuel BCEAO — Zone UEMOA + Sénégal",
-    "institution": "BCEAO",
-    "url": "https://www.bceao.int",
-    "type": "annual_report",
+    "id": "ansd_bdef_2024",
+    "name": "BDEF 2024 — Banque de Données Économiques et Financières",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "filename": "ANSD_BDEF_2024.pdf",
+    "direct_url": null,
+    "url": "https://www.ansd.sn/Indicateur/banque-de-donnees-economiques-et-financieres-bdef",
     "language": "fr",
-    "topics": ["monnaie", "inflation", "finance", "balance des paiements"]
+    "year": 2024,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T00:00:00+00:00",
+    "topics": [
+      "PIB",
+      "croissance",
+      "macroéconomie",
+      "secteurs",
+      "finances publiques",
+      "balance des paiements"
+    ]
   },
   {
-    "id": "ms_eds2023",
+    "id": "ansd_neer",
+    "name": "NEER — Note sur les Évolutions Économiques Récentes",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "quarterly",
+    "url": "https://www.ansd.sn/Indicateur/note-sur-les-evolutions-economiques-recentes-neer",
+    "language": "fr",
+    "topics": [
+      "conjoncture",
+      "PIB trimestriel",
+      "croissance trimestrielle",
+      "secteurs"
+    ],
+    "editions": [
+      {
+        "label": "T4-2024",
+        "filename": "ANSD_NEER_T4_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T00:00:00+00:00"
+      },
+      {
+        "label": "T3-2024",
+        "filename": "ANSD_NEER_T3_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T00:00:00+00:00"
+      }
+    ],
+    "status": "indexed"
+  },
+  {
+    "id": "ansd_enes",
+    "name": "ENES — Enquête Nationale sur l'Emploi au Sénégal",
+    "institution": "ANSD",
+    "pipeline": "pdf_text",
+    "frequency": "quarterly",
+    "url": "https://www.ansd.sn/Indicateur/enquete-emploi",
+    "language": "fr",
+    "topics": [
+      "emploi",
+      "chômage",
+      "activité économique",
+      "marché du travail",
+      "sous-emploi"
+    ],
+    "editions": [
+      {
+        "label": "T3-2023",
+        "filename": "ANSD_ENES_T3_2023.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T00:00:00+00:00"
+      },
+      {
+        "label": "T3-2022",
+        "filename": "ANSD_ENES_T3_2022.pdf",
+        "direct_url": null,
+        "year": 2022,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T00:00:00+00:00"
+      }
+    ],
+    "status": "indexed"
+  },
+  {
+    "id": "eds_2023",
     "name": "EDS 2023 — Enquête Démographique et de Santé",
-    "institution": "Ministère de la Santé",
-    "url": "https://www.ms.sn",
-    "type": "survey",
+    "institution": "ANSD / DHS Program",
+    "pipeline": "pdf_text",
+    "frequency": "quinquennial",
+    "filename": "EDS_2023.pdf",
+    "direct_url": null,
+    "url": "https://dhsprogram.com/Countries/Country-Main.cfm?ctry_id=43",
     "language": "fr",
-    "topics": ["santé", "mortalité", "fertilité", "nutrition"]
+    "year": 2023,
+    "status": "pending",
+    "topics": [
+      "santé",
+      "mortalité infantile",
+      "fertilité",
+      "nutrition",
+      "vaccination",
+      "VIH"
+    ],
+    "note": "Nécessite inscription sur dhsprogram.com pour téléchargement."
+  },
+  {
+    "id": "dpee_sef",
+    "name": "SEF — Situation Économique et Financière",
+    "institution": "DPEE",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "url": "https://www.dpee.sn",
+    "language": "fr",
+    "topics": [
+      "PIB",
+      "croissance",
+      "finances publiques",
+      "budget",
+      "conjoncture"
+    ],
+    "note": "Téléchargement JS-gated sur dpee.sn. Télécharger manuellement et placer dans data/raw/.",
+    "editions": [
+      {
+        "label": "SEF-2024",
+        "filename": "DPEE_SEF_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "pending"
+      },
+      {
+        "label": "SEF-2023",
+        "filename": "DPEE_SEF_2023.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      },
+      {
+        "label": "SEF-2022",
+        "filename": "DPEE_SEF_2022.pdf",
+        "direct_url": null,
+        "year": 2022,
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "dpee_ref",
+    "name": "REF — Rapport Économique et Financier / LFI",
+    "institution": "DPEE",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "url": "https://www.dpee.sn",
+    "language": "fr",
+    "topics": [
+      "budget",
+      "loi de finances",
+      "recettes",
+      "dépenses",
+      "prévisions"
+    ],
+    "note": "Téléchargement JS-gated sur dpee.sn.",
+    "editions": [
+      {
+        "label": "LFI-2025",
+        "filename": "DPEE_REF_LFI_2025.pdf",
+        "direct_url": null,
+        "year": 2025,
+        "status": "pending"
+      },
+      {
+        "label": "LFI-2024",
+        "filename": "DPEE_REF_LFI_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "pending"
+      },
+      {
+        "label": "LFI-2023",
+        "filename": "DPEE_REF_LFI_2023.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "dgtcp_dette",
+    "name": "Bulletin Statistique de la Dette Publique",
+    "institution": "DGTCP",
+    "pipeline": "pdf_text",
+    "frequency": "quarterly",
+    "url": "https://www.sentresor.org",
+    "language": "fr",
+    "topics": [
+      "dette publique",
+      "dette extérieure",
+      "service de la dette",
+      "soutenabilité"
+    ],
+    "editions": [
+      {
+        "label": "T2-2024",
+        "filename": "DGTCP_Dette_T2_2024.pdf",
+        "direct_url": "https://www.sentresor.org/app/uploads/Bulletin_statistique_TRIM2_2024def.pdf",
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T21:56:34+00:00"
+      },
+      {
+        "label": "T1-2024",
+        "filename": "DGTCP_Dette_T1_2024.pdf",
+        "direct_url": "https://www.sentresor.org/app/uploads/Bulletin_statistique_TRIM1_2024.pdf",
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T21:56:53+00:00"
+      }
+    ],
+    "status": "indexed"
+  },
+  {
+    "id": "courdescomptes_audit_2024",
+    "name": "Rapport Définitif sur la Situation des Finances Publiques 2019-2024",
+    "institution": "Cour des Comptes",
+    "pipeline": "pdf_text",
+    "frequency": "one-off",
+    "filename": "CourDesComptes_Audit_FP_2019_2024.pdf",
+    "direct_url": "https://www.courdescomptes.sn/wp-content/uploads/2025/02/Rapport-de%CC%81finitif-Situation-des-Finances-Publiques-2019-2024.pdf",
+    "url": "https://www.courdescomptes.sn",
+    "language": "fr",
+    "year": 2025,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T21:58:02+00:00",
+    "topics": [
+      "dette publique",
+      "finances publiques",
+      "audit",
+      "déficit",
+      "recettes",
+      "dépenses"
+    ],
+    "note": "CRITIQUE: Révise la dette publique à 99.67% du PIB vs 74.41% officiel (DGTCP). Rapport déclenché par révision des comptes 2019-2022."
+  },
+  {
+    "id": "imf_country_reports",
+    "name": "IMF Country Reports — Sénégal 2023",
+    "institution": "FMI",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "url": "https://www.imf.org/en/Publications/CR",
+    "language": "en",
+    "topics": [
+      "macroéconomie",
+      "PIB",
+      "dette",
+      "programme FMI",
+      "article IV"
+    ],
+    "note": "URLs .ashx du FMI retournent HTML. Télécharger manuellement depuis imf.org.",
+    "editions": [
+      {
+        "label": "CR-23-435",
+        "filename": "IMF_CR_23_435.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      },
+      {
+        "label": "CR-23-250",
+        "filename": "IMF_CR_23_250.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      },
+      {
+        "label": "CR-23-030",
+        "filename": "IMF_CR_23_030.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "imf_weo_sen",
+    "name": "IMF WEO Database — Sénégal",
+    "institution": "FMI",
+    "pipeline": "api_imf",
+    "frequency": "semiannual",
+    "url": "https://www.imf.org/en/Publications/WEO",
+    "language": "fr",
+    "year": 2025,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T21:59:16+00:00",
+    "topics": [
+      "PIB",
+      "croissance",
+      "inflation",
+      "dette",
+      "balance courante",
+      "macroéconomie"
+    ],
+    "api_config": {
+      "country_code": "SEN",
+      "indicators": [
+        "NGDP_RPCH",
+        "NGDPDPC",
+        "PCPIPCH",
+        "BCA_NGDPD",
+        "GGXCNL_NGDP",
+        "GGXWDG_NGDP",
+        "LUR",
+        "PPPGDP",
+        "NID_NGDP"
+      ]
+    }
   },
   {
     "id": "worldbank_sn",
     "name": "World Bank Open Data — Sénégal",
     "institution": "Banque Mondiale",
-    "url": "https://api.worldbank.org/v2/country/SN/indicator",
-    "type": "api",
+    "pipeline": "api_worldbank",
+    "frequency": "annual",
+    "url": "https://data.worldbank.org/country/SN",
+    "language": "fr",
+    "year": 2024,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T19:40:17+00:00",
+    "topics": [
+      "PIB",
+      "pauvreté",
+      "population",
+      "chômage",
+      "éducation",
+      "santé",
+      "dette",
+      "Gini"
+    ],
+    "api_config": {
+      "country_code": "SN",
+      "base_url": "https://api.worldbank.org/v2"
+    }
+  },
+  {
+    "id": "ilo_ilostat_sen",
+    "name": "ILOSTAT — Indicateurs du marché du travail — Sénégal",
+    "institution": "OIT",
+    "pipeline": "api_ilostat",
+    "frequency": "annual",
+    "url": "https://ilostat.ilo.org/data/",
+    "language": "fr",
+    "year": 2024,
+    "status": "pending",
+    "topics": [
+      "emploi",
+      "chômage",
+      "marché du travail",
+      "activité",
+      "secteur informel"
+    ],
+    "note": "API ILOSTAT retournait réponse vide lors du dernier run (serveur down). Réessayer.",
+    "api_config": {
+      "country_code": "SEN",
+      "indicators": [
+        "EMP_TEMP_SEX_AGE_STE_NB",
+        "UNE_TUNE_SEX_AGE_NB",
+        "EAP_TEAP_SEX_AGE_NB",
+        "EMP_2EMP_SEX_AGE_NB",
+        "SDG_0111_SEX_RT"
+      ]
+    }
+  },
+  {
+    "id": "dapsa_eaa_2022",
+    "name": "EAA 2022-2023 — Enquête Agricole Annuelle",
+    "institution": "DAPSA",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "filename": "DAPSA_EAA_2022_2023.pdf",
+    "direct_url": "https://www.dapsa.gouv.sn/sites/default/files/Rapport_EAA%202022_2023_v1.pdf",
+    "url": "https://www.dapsa.gouv.sn",
+    "language": "fr",
+    "year": 2024,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T21:58:56+00:00",
+    "topics": [
+      "agriculture",
+      "récolte",
+      "céréales",
+      "mil",
+      "arachide",
+      "riz",
+      "production agricole"
+    ]
+  },
+  {
+    "id": "fao_faostat_sen",
+    "name": "FAOSTAT — Données agricoles et alimentaires — Sénégal",
+    "institution": "FAO",
+    "pipeline": "api_faostat",
+    "frequency": "annual",
+    "url": "https://www.fao.org/faostat/fr/",
+    "language": "fr",
+    "year": 2024,
+    "status": "pending",
+    "topics": [
+      "agriculture",
+      "production agricole",
+      "commerce alimentaire",
+      "alimentation",
+      "élevage"
+    ],
+    "note": "Serveur FAOSTAT retournait erreur 521 (Cloudflare origin down). Réessayer.",
+    "api_config": {
+      "country_code": 272,
+      "domains": [
+        "QCL",
+        "TCL",
+        "FBS",
+        "PP"
+      ],
+      "years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ]
+    }
+  },
+  {
+    "id": "undp_hdi_mpi",
+    "name": "HDI 2024 + MPI 2023 — Sénégal",
+    "institution": "PNUD",
+    "pipeline": "xlsx",
+    "frequency": "annual",
+    "filename": "UNDP_HDI_MPI_SEN.xlsx",
+    "direct_url": "https://hdr.undp.org/sites/default/files/2023-24_HDR/HDR23-24_Statistical_Annex_HDI_Table.xlsx",
+    "url": "https://hdr.undp.org",
     "language": "en",
-    "topics": ["indicateurs macro", "développement", "éducation"]
+    "year": 2024,
+    "status": "indexed",
+    "indexed_at": "2026-05-18T20:06:42+00:00",
+    "topics": [
+      "IDH",
+      "espérance de vie",
+      "éducation",
+      "revenu",
+      "IPM",
+      "pauvreté multidimensionnelle"
+    ],
+    "note": "IDH Sénégal: 0.530 (2023, rang 169/193). IPM: 0.263 — 45.1% de la population."
+  },
+  {
+    "id": "artp_telecom",
+    "name": "Rapport sur les Marchés des Communications Électroniques",
+    "institution": "ARTP",
+    "pipeline": "pdf_text",
+    "frequency": "quarterly",
+    "url": "https://artp.sn",
+    "language": "fr",
+    "topics": [
+      "télécom",
+      "mobile",
+      "internet",
+      "numérique",
+      "pénétration",
+      "opérateurs"
+    ],
+    "editions": [
+      {
+        "label": "S1-2024",
+        "filename": "ARTP_Telecom_S1_2024.pdf",
+        "direct_url": "https://artp.sn/sites/default/files/2024-09/Rapport%2030%2006%202024.pdf",
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T22:00:50+00:00"
+      },
+      {
+        "label": "T1-2024",
+        "filename": "ARTP_Telecom_T1_2024.pdf",
+        "direct_url": "https://artp.sn/sites/default/files/2024-07/Rapport_marche%20des%20communications%20electroniques%20T1-2024.pdf",
+        "year": 2024,
+        "status": "indexed",
+        "indexed_at": "2026-05-18T22:01:21+00:00"
+      }
+    ],
+    "status": "indexed"
+  },
+  {
+    "id": "bceao_rapport_annuel",
+    "name": "Rapport Annuel BCEAO",
+    "institution": "BCEAO",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "filename": "BCEAO_Rapport_Annuel.pdf",
+    "direct_url": null,
+    "url": "https://www.bceao.int/fr/publications/rapports-annuels",
+    "language": "fr",
+    "year": 2023,
+    "status": "pending",
+    "topics": [
+      "monnaie",
+      "inflation",
+      "BCEAO",
+      "UEMOA",
+      "taux directeur",
+      "franc CFA",
+      "balance des paiements"
+    ],
+    "note": "Télécharger manuellement depuis bceao.int → data/raw/BCEAO_Rapport_Annuel.pdf"
+  },
+  {
+    "id": "afdb_senegal",
+    "name": "Country Strategy Paper / Mid-Term Review — Sénégal",
+    "institution": "Banque Africaine de Développement",
+    "pipeline": "pdf_text",
+    "frequency": "quinquennial",
+    "url": "https://www.afdb.org",
+    "language": "en",
+    "topics": [
+      "développement",
+      "investissement",
+      "PIB",
+      "macro",
+      "projets"
+    ],
+    "note": "afdb.org sert du HTML (JS-gated). Télécharger manuellement.",
+    "editions": [
+      {
+        "label": "MTR-2023",
+        "filename": "AfDB_Senegal_MTR_2023.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      },
+      {
+        "label": "CSP-2021-2025",
+        "filename": "AfDB_Senegal_CSP_2021_2025.pdf",
+        "direct_url": null,
+        "year": 2021,
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "dgb_budget",
+    "name": "Rapport Trimestriel d'Exécution Budgétaire",
+    "institution": "DGB",
+    "pipeline": "pdf_text",
+    "frequency": "quarterly",
+    "url": "https://budget.sec.gouv.sn",
+    "language": "fr",
+    "topics": [
+      "budget",
+      "exécution budgétaire",
+      "recettes",
+      "dépenses",
+      "finances publiques"
+    ],
+    "note": "budget.sec.gouv.sn: erreur SSL (rc=35). Télécharger manuellement.",
+    "editions": [
+      {
+        "label": "T3-2024",
+        "filename": "DGB_Budget_T3_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "pending"
+      },
+      {
+        "label": "T2-2024",
+        "filename": "DGB_Budget_T2_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "pending"
+      },
+      {
+        "label": "T1-2024",
+        "filename": "DGB_Budget_T1_2024.pdf",
+        "direct_url": null,
+        "year": 2024,
+        "status": "pending"
+      },
+      {
+        "label": "T3-2023",
+        "filename": "DGB_Budget_T3_2023.pdf",
+        "direct_url": null,
+        "year": 2023,
+        "status": "pending"
+      }
+    ],
+    "status": "pending"
+  },
+  {
+    "id": "dgppe_rncs_2024",
+    "name": "RNCS 2024 — Rapport National sur la Compétitivité du Sénégal",
+    "institution": "DGPPE",
+    "pipeline": "pdf_text",
+    "frequency": "annual",
+    "filename": "DGPPE_RNCS_2024.pdf",
+    "direct_url": null,
+    "url": "https://www.dgppe.gouv.sn",
+    "language": "fr",
+    "year": 2024,
+    "status": "pending",
+    "topics": [
+      "compétitivité",
+      "investissement",
+      "climat des affaires",
+      "Doing Business"
+    ],
+    "note": "Télécharger manuellement depuis dgppe.gouv.sn."
   }
 ]

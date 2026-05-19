@@ -1,4 +1,5 @@
 import os
+import re
 import anthropic
 from loguru import logger
 from agents.state import AgentState
@@ -55,7 +56,13 @@ Question : "Combien d'accidents de la route y a-t-il eu en 2023 ?"
 {chunks}
 {structured_data}
 ━━━ QUESTION ━━━
-{query}"""
+{query}
+
+━━━ INSTRUCTION FINALE ━━━
+À la toute fin de ta réponse, sur une ligne séparée, écris exactement :
+SOURCES_USED: <numéros des extraits que tu as effectivement utilisés, séparés par des virgules>
+Exemple : SOURCES_USED: 1,3
+N'indique que les extraits dont le contenu apparaît dans ta réponse. Si tu n'as utilisé aucun extrait, écris SOURCES_USED: none"""
 
 _TREND_BLOCK = """
 ━━━ DONNÉES TEMPORELLES (pré-calculées) ━━━
@@ -171,8 +178,26 @@ def synthesis_agent(state: AgentState) -> dict:
         ),
         messages=messages,
     )
-    synthesis = response.content[0].text.strip()
-    citations = _extract_citations(chunks)
+    raw = response.content[0].text.strip()
 
-    logger.info(f"Synthesis → {len(synthesis)} chars, {len(citations)} citations")
+    # Extract SOURCES_USED line and filter citations to only used chunks
+    sources_match = re.search(r'\nSOURCES_USED:\s*([^\n]+)', raw)
+    synthesis = re.sub(r'\nSOURCES_USED:[^\n]*', '', raw).strip()
+
+    if sources_match:
+        used_str = sources_match.group(1).strip()
+        if used_str.lower() == "none":
+            used_indices: set[int] = set()
+        else:
+            used_indices = {
+                int(x.strip()) - 1  # convert 1-based to 0-based
+                for x in used_str.split(",")
+                if x.strip().isdigit()
+            }
+        used_chunks = [chunks[i] for i in sorted(used_indices) if i < len(chunks)]
+    else:
+        used_chunks = chunks  # fallback: cite all if model didn't follow instruction
+
+    citations = _extract_citations(used_chunks)
+    logger.info(f"Synthesis → {len(synthesis)} chars, {len(citations)} citations (from {len(chunks)} retrieved)")
     return {"synthesis": synthesis, "citations": citations}

@@ -60,3 +60,12 @@ class ChromaStore:
                 **meta
             })
         return chunks
+
+    def count(self, where: dict | None = None) -> int:
+        try:
+            kwargs = {"include": []}
+            if where:
+                kwargs["where"] = where
+            return len(self.collection.get(**kwargs)["ids"])
+        except Exception:
+            return 0
