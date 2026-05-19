@@ -1,3 +1,4 @@
+import asyncio
 import re
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -13,7 +14,7 @@ router = APIRouter()
 async def query(request: QueryRequest):
     try:
         graph = get_graph()
-        result = graph.invoke({
+        state = {
             "query": request.query,
             "intent": "",
             "retrieved_chunks": [],
@@ -28,7 +29,8 @@ async def query(request: QueryRequest):
                 {"role": m.role, "content": m.content}
                 for m in request.messages
             ],
-        })
+        }
+        result = await asyncio.to_thread(graph.invoke, state)
         answer = _INLINE_CITE_RE.sub("", result["synthesis"]).strip()
         return QueryResponse(
             query=request.query,

@@ -1,44 +1,116 @@
+import os
 import re
-from rank_bm25 import BM25Okapi
-from sentence_transformers import CrossEncoder
+
 from loguru import logger
-from vectorstore.chroma_store import ChromaStore
+from sentence_transformers import CrossEncoder
+
 from agents.state import AgentState
+from vectorstore.chroma_store import ChromaStore
+
+# ── Feature toggles ───────────────────────────────────────────────────────────
+USE_QDRANT = os.getenv("USE_QDRANT", "false").lower() == "true"
+USE_COHERE_RERANK = os.getenv("USE_COHERE_RERANK", "false").lower() == "true"
+USE_COLPALI = os.getenv("USE_COLPALI", "false").lower() == "true"
+COLPALI_TOP_K = int(os.getenv("COLPALI_TOP_K", "3"))
 
 # ── Source routing ─────────────────────────────────────────────────────────────
-# Maps keyword patterns to source_ids. Order matters: first match wins.
-# Falls back to None (no filter) when the query spans multiple domains.
+# Maps keyword patterns → source_ids. First unambiguous match wins.
+# Falls back to None (full corpus) when query spans multiple domains.
 _SOURCE_RULES: list[tuple[re.Pattern, list[str]]] = [
-    # Note: no trailing \b so French suffixed forms match (pauvreté, inégalité…)
+    # Poverty & living conditions
     (re.compile(
-        r"\b(?:pauv\w*|ehcvm|seuil de pauv|inégali\w*|consommation|indigent|"
-        r"poor|poverty|gini|profondeur|sévérité)",
+        r"\b(?:pauv\w*|ehcvm|esps|seuil de pauv|inégali\w*|consommation|indigent|"
+        r"poor|poverty|gini|profondeur|sévérité|conditions de vie|ménage)",
         re.IGNORECASE),
-     ["ehcvm_2021"]),
+     ["ehcvm_2021", "ansd_esps_2021"]),
 
+    # Population & demographics
     (re.compile(
-        r"\b(?:population|rgph|démograph\w*|ménage|naissance|mortalité|"
-        r"fécondité|densité|habitant\w*|recensement)",
+        r"\b(?:population|rgph|démograph\w*|naissance|mortalité|"
+        r"fécondité|densité|habitant\w*|recensement|ménage\w*)",
         re.IGNORECASE),
-     ["rgph5_preliminaire"]),
+     ["rgph5_2023"]),
 
-    (re.compile(
-        r"\b(?:pib|croissance économique|secteur\w*|agriculture|industri\w*|"
-        r"valeur ajoutée|économi\w*|gdp|growth)",
-        re.IGNORECASE),
-     ["rgph5_economie", "ses_2022_2023"]),
-
+    # Employment & labour market
     (re.compile(
         r"\b(?:emploi|chômage|chôm\w*|actif|inactif|travail|sous-emploi|"
-        r"employment|unemployment)",
+        r"enes|ilostat|informel|activ\w* économ|employment|unemployment|labour|labor)",
         re.IGNORECASE),
-     ["rgph5_economie", "ses_2022_2023"]),
+     ["rgph5_economie", "ses_2022_2023", "ansd_enes", "ilo_ilostat_sen"]),
 
-    # Only route to SES for explicit education/electrification terms
-    # "social" and "accès" are too generic — they appear across all sources
+    # Quarterly GDP & conjuncture
+    (re.compile(
+        r"\b(?:neer|pib trimestriel|croissance trimestrielle|conjoncture trimestrielle|"
+        r"t[1-4][- ]20\d\d|trimestre)",
+        re.IGNORECASE),
+     ["ansd_neer", "dpee_sef"]),
+
+    # Macroeconomy & GDP (annual)
+    (re.compile(
+        r"\b(?:pib|croissance économique|secteur\w*|agriculture|industri\w*|"
+        r"valeur ajoutée|économi\w*|gdp|growth|macro)",
+        re.IGNORECASE),
+     ["rgph5_economie", "ses_2022_2023", "dpee_sef", "imf_weo_sen", "ansd_bdef_2024"]),
+
+    # Public finances & budget
+    (re.compile(
+        r"\b(?:budget|fiscal|recette\w*|dépense\w*|déficit|loi de finances|"
+        r"exécution budgétaire|ref |sef |dgb|finances publiques)",
+        re.IGNORECASE),
+     ["dpee_ref", "dpee_sef", "dgb_budget"]),
+
+    # Public debt
+    (re.compile(
+        r"\b(?:dette publique|dette extérieure|dette intérieure|service de la dette|"
+        r"dgtcp|cour des comptes|soutenabilité|dsa|debt)",
+        re.IGNORECASE),
+     ["dgtcp_dette", "courdescomptes_audit_2024", "imf_country_reports", "imf_weo_sen"]),
+
+    # Agriculture & food
+    (re.compile(
+        r"\b(?:agricult\w*|récolte|culture|céréale|mil|arachide|riz|bétail|"
+        r"élevage|faostat|dapsa|eaa|production agricole|alimentaire)",
+        re.IGNORECASE),
+     ["dapsa_eaa_2022", "fao_faostat_sen", "ses_2022_2023"]),
+
+    # Health & demography
+    (re.compile(
+        r"\b(?:santé|mortalité infantile|fertilité|nutrition|malnutrition|"
+        r"eds|vaccin|paludisme|maternelle|vih|aids)",
+        re.IGNORECASE),
+     ["eds_2023", "ses_2022_2023"]),
+
+    # Education
     (re.compile(
         r"\b(?:éducation|scolarisation|alphabétis\w*|école|primaire scolaire|"
-        r"secondaire scolaire|électrif\w*)",
+        r"secondaire scolaire|université|enseignement)",
+        re.IGNORECASE),
+     ["ses_2022_2023", "undp_hdi_mpi"]),
+
+    # Human development & multidimensional poverty
+    (re.compile(
+        r"\b(?:idh|ipm|développement humain|pauvreté multidimensionnelle|"
+        r"hdi|mpi|indice de développement)",
+        re.IGNORECASE),
+     ["undp_hdi_mpi"]),
+
+    # Telecom & digital
+    (re.compile(
+        r"\b(?:télécom|mobile|internet|numérique|artp|pénétration|"
+        r"opérateur|broadband|haut débit)",
+        re.IGNORECASE),
+     ["artp_telecom"]),
+
+    # Monetary & banking (BCEAO)
+    (re.compile(
+        r"\b(?:monnaie|inflation|franc cfa|bceao|uemoa|taux directeur|"
+        r"balance des paiements|réserves)",
+        re.IGNORECASE),
+     ["bceao_rapport_annuel", "imf_weo_sen"]),
+
+    # Education only via SES for explicit terms
+    (re.compile(
+        r"\b(?:électrif\w*|accès à l'électricité)",
         re.IGNORECASE),
      ["ses_2022_2023"]),
 ]
@@ -48,14 +120,13 @@ CE_THRESHOLD = 0.0  # ms-marco logit score — chunks below this are off-topic
 
 
 def _detect_source_filter(query: str) -> dict | None:
-    """Return a ChromaDB where-filter if the query maps unambiguously to one domain."""
+    """Return a where-filter if query maps unambiguously to one domain."""
     matched: list[list[str]] = []
     for pattern, source_ids in _SOURCE_RULES:
         if pattern.search(query):
             matched.append(source_ids)
             if len(matched) > 1:
-                # Query spans multiple domains — don't filter, use full corpus
-                return None
+                return None  # spans multiple domains — no filter
     if not matched:
         return None
     source_ids = matched[0]
@@ -63,22 +134,67 @@ def _detect_source_filter(query: str) -> dict | None:
         return {"source_id": source_ids[0]}
     return {"source_id": {"$in": source_ids}}
 
+
+# ── Lazy singletons ───────────────────────────────────────────────────────────
 _store = None
+_colpali_indexer = None
 _cross_encoder = None
+_cohere_client = None
 
 
-def _get_store() -> ChromaStore:
+def _get_store():
     global _store
     if _store is None:
-        _store = ChromaStore()
+        if USE_QDRANT:
+            from vectorstore.qdrant_store import QdrantStore
+            _store = QdrantStore()
+            logger.info("Retrieval backend: Qdrant (dense+sparse hybrid)")
+        else:
+            _store = ChromaStore()
+            logger.info("Retrieval backend: ChromaDB")
     return _store
 
 
-def _get_cross_encoder() -> CrossEncoder:
-    global _cross_encoder
+def _get_colpali():
+    global _colpali_indexer
+    if _colpali_indexer is None:
+        from ingestion.colpali_indexer import ColPaliIndexer
+        _colpali_indexer = ColPaliIndexer()
+    return _colpali_indexer
+
+
+def _rerank(query: str, docs: list[dict]) -> list[dict]:
+    global _cross_encoder, _cohere_client
+    if USE_COHERE_RERANK:
+        if _cohere_client is None:
+            import cohere
+            _cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
+        response = _cohere_client.rerank(
+            model="rerank-v3.5",
+            query=query,
+            documents=[d["text"] for d in docs],
+            top_n=TOP_K,
+        )
+        return [docs[r.index] for r in response.results]
+
+    # CrossEncoder path — apply CE_THRESHOLD to drop off-topic chunks
     if _cross_encoder is None:
         _cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-    return _cross_encoder
+    pairs = [(query, d["text"]) for d in docs]
+    scores = _cross_encoder.predict(pairs)
+    scored = sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)
+
+    # Keep only chunks above CE_THRESHOLD; always keep at least 1
+    above = [(s, d) for s, d in scored if s >= CE_THRESHOLD]
+    reranked = [d for _, d in (above if above else scored[:1])][:TOP_K]
+
+    dropped = len(scored) - len(above)
+    if dropped:
+        logger.debug(
+            f"CE threshold dropped {dropped}/{len(scored)} off-topic chunks "
+            f"(threshold={CE_THRESHOLD})"
+        )
+    return reranked
 
 
 def _reciprocal_rank_fusion(rankings: list[list[dict]], k: int = 60) -> list[dict]:
@@ -89,56 +205,71 @@ def _reciprocal_rank_fusion(rankings: list[list[dict]], k: int = 60) -> list[dic
             doc_id = doc.get("chunk_id") or doc["text"][:80]
             scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank + 1)
             docs[doc_id] = doc
-    sorted_ids = sorted(scores, key=lambda x: scores[x], reverse=True)
-    return [docs[i] for i in sorted_ids]
+    return [docs[i] for i in sorted(scores, key=lambda x: scores[x], reverse=True)]
 
+
+# ── ColPali retrieval ─────────────────────────────────────────────────────────
+
+def _colpali_retrieval(query: str) -> list[dict]:
+    """Query the ColPali visual index and return page-level chunks."""
+    try:
+        indexer = _get_colpali()
+        return indexer.search(query, n_results=COLPALI_TOP_K)
+    except Exception as e:
+        logger.warning(f"ColPali retrieval failed (non-fatal): {e}")
+        return []
+
+
+# ── Main retrieval agent ──────────────────────────────────────────────────────
 
 def retrieval_agent(state: AgentState) -> dict:
     query = state["query"]
     store = _get_store()
-
-    # 0. Source filter — restrict dense search to the relevant report(s)
     src_filter = _detect_source_filter(query)
 
-    # 1. Dense retrieval (with optional source filter)
-    dense = store.search(query, n_results=20, where=src_filter)
-    # Fall back only if the filter returns nothing at all
-    if len(dense) == 0 and src_filter is not None:
-        logger.debug("Source filter returned 0 chunks — falling back to full corpus")
-        dense = store.search(query, n_results=20)
-        src_filter = None
-
-    # 2. BM25 sparse retrieval over dense candidates (lightweight)
-    corpus = [c["text"] for c in dense]
-    if corpus:
-        tokenized = [doc.split() for doc in corpus]
-        bm25 = BM25Okapi(tokenized)
-        bm25_scores = bm25.get_scores(query.split())
-        sparse = [dense[i] for i in sorted(range(len(dense)),
-                                           key=lambda x: bm25_scores[x], reverse=True)]
+    # ── Text / hybrid retrieval ───────────────────────────────────────────────
+    if USE_QDRANT:
+        # Qdrant fuses dense+sparse natively — no BM25 sidecar needed
+        text_candidates = store.search(query, n_results=20, where=src_filter)
+        if len(text_candidates) < TOP_K and src_filter is not None:
+            logger.debug(f"Source filter → {len(text_candidates)} results, retrying unfiltered")
+            text_candidates = store.search(query, n_results=20)
+        fused = text_candidates
     else:
-        sparse = []
+        from rank_bm25 import BM25Okapi
+        dense = store.search(query, n_results=20, where=src_filter)
+        if len(dense) < TOP_K and src_filter is not None:
+            logger.debug(f"Source filter → {len(dense)} results, falling back to full corpus")
+            dense = store.search(query, n_results=20)
+            src_filter = None
+        corpus = [c["text"] for c in dense]
+        if corpus:
+            tokenized = [doc.split() for doc in corpus]
+            bm25 = BM25Okapi(tokenized)
+            bm25_scores = bm25.get_scores(query.split())
+            sparse = [dense[i] for i in sorted(range(len(dense)),
+                                               key=lambda x: bm25_scores[x], reverse=True)]
+        else:
+            sparse = []
+        fused = _reciprocal_rank_fusion([dense, sparse])[:20]
 
-    # 3. Reciprocal Rank Fusion
-    fused = _reciprocal_rank_fusion([dense, sparse])[:20]
+    # ── ColPali visual retrieval (fan-out) ────────────────────────────────────
+    if USE_COLPALI:
+        colpali_chunks = _colpali_retrieval(query)
+        if colpali_chunks:
+            # Merge visual page refs into the candidate pool before reranking
+            fused = _reciprocal_rank_fusion([fused, colpali_chunks])[:20]
+            logger.debug(f"ColPali contributed {len(colpali_chunks)} visual chunks")
 
-    # 4. CrossEncoder reranking + score threshold
-    if fused:
-        ce = _get_cross_encoder()
-        pairs = [(query, doc["text"]) for doc in fused]
-        ce_scores = ce.predict(pairs)
-        scored = sorted(zip(ce_scores, fused), key=lambda x: x[0], reverse=True)
+    # ── Reranking ─────────────────────────────────────────────────────────────
+    reranked = _rerank(query, fused) if fused else []
 
-        # Keep only chunks above CE_THRESHOLD; always keep at least 1
-        above = [(s, d) for s, d in scored if s >= CE_THRESHOLD]
-        reranked = [d for _, d in (above if above else scored[:1])][:TOP_K]
-
-        dropped = len(scored) - len(above)
-        if dropped:
-            logger.debug(f"CE threshold dropped {dropped}/{len(scored)} off-topic chunks (threshold={CE_THRESHOLD})")
-    else:
-        reranked = []
-
+    backend = "qdrant" if USE_QDRANT else "chroma"
+    reranker = "cohere" if USE_COHERE_RERANK else "cross-encoder"
+    colpali_tag = "+colpali" if USE_COLPALI else ""
     filter_label = list(src_filter.values())[0] if src_filter else "full"
-    logger.info(f"Retrieval → {len(reranked)} chunks (filter={filter_label}, dense={len(dense)}, fused={len(fused)})")
+    logger.info(
+        f"Retrieval [{backend}{colpali_tag}+{reranker}] → {len(reranked)} chunks "
+        f"(filter={filter_label}, candidates={len(fused)})"
+    )
     return {"retrieved_chunks": reranked}
