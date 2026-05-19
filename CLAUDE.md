@@ -11,6 +11,59 @@ with the source, the report, and the page — updated in real time.
 
 ---
 
+## Git Branching Strategy
+
+### Branches permanentes (protégées)
+
+| Branche | Environnement | Règles |
+|---|---|---|
+| `main` | Production stable | PR obligatoire · 1 review · CI vert · aucun push direct |
+| `stg` | Staging déployé | PR depuis `dev` uniquement · CI vert |
+| `dev` | Intégration / dev local | Push direct autorisé pour petites corrections |
+
+### Branches temporaires
+
+Toujours créées depuis `dev`, PR vers `dev` :
+
+| Préfixe | Usage | Exemple |
+|---|---|---|
+| `feature/` | Nouvelle fonctionnalité | `feature/rag-reranker` |
+| `fix/` | Correction de bug | `fix/citation-format` |
+| `docs/` | Documentation uniquement | `docs/api-reference` |
+| `chore/` | Maintenance, dépendances | `chore/update-deps` |
+| `hotfix/` | Urgence production | `hotfix/api-key-leak` |
+| `claude/` | Branches générées par AI | `claude/remove-readme-roadmap` |
+
+### Flux standard
+
+```
+feature/* ──┐
+fix/*       ├──► dev ──► stg ──► main (prod)
+docs/*      │
+chore/*   ──┘
+
+hotfix/* ──► main ──► (backport) ──► dev
+```
+
+### Règles de merge
+
+- **`dev` → `stg`** : PR, CI obligatoire, aucune review requise (validation d'intégration)
+- **`stg` → `main`** : PR, CI obligatoire, 1 review, déploiement prod déclenché au merge
+- **`hotfix` → `main`** : PR, CI obligatoire, 1 review — puis ouvrir un PR de backport vers `dev`
+- **Squash merge** recommandé pour `feature/*` et `fix/*` afin de garder un historique `dev` lisible
+
+### Règles de nommage
+
+```
+feature/nom-court-en-kebab-case
+fix/ce-qui-est-corrige
+hotfix/correction-critique
+docs/ce-qui-est-documente
+chore/ce-qui-est-maintenu
+```
+
+---
+
 ## Repository Structure
 
 ```
