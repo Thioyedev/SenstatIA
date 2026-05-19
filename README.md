@@ -437,46 +437,6 @@ senstat/
 
 ---
 
-## Roadmap
-
-### Phase 1 — Foundation ✅ (complétée)
-
-- [x] Pipeline d'ingestion PDF (pdfplumber + OCR fallback)
-- [x] ChromaDB avec embeddings multilingues (`intfloat/multilingual-e5-large`)
-- [x] 1 887 chunks indexés depuis 4 rapports officiels ANSD
-- [x] LangGraph multi-agent (Router → Retrieval → Synthesis)
-- [x] Hybrid retrieval Dense + BM25 + RRF
-- [x] FastAPI REST (`/health`, `/documents`, `/query`)
-- [x] Frontend Pro Streamlit multi-pages (port 8501)
-- [x] Frontend Grand Public Streamlit (port 8502)
-- [x] Golden dataset 20 questions
-- [x] Pipeline d'évaluation complet (custom metrics + RAGAS)
-
-### Phase 2 — Amélioration du retrieval
-
-- [ ] CrossEncoder reranking (`ms-marco-MiniLM-L-6-v2`) → améliorer Context Precision (0.513 → 0.7+)
-- [ ] Affinement du prompt de synthèse → améliorer Answer Relevancy (0.679 → 0.8+)
-- [ ] Trend agent — extraction de séries temporelles + calcul TCAM avec statsmodels
-- [ ] Compare agent — comparaisons géographiques et sectorielles automatiques
-- [ ] Migration Qdrant Cloud pour la production
-
-### Phase 3 — Agents avancés
-
-- [ ] Compute agent — sandbox Python pour calculs statistiques (`subprocess` + timeout)
-- [ ] Viz agent — graphiques Plotly avec watermark source
-- [ ] Exécution parallèle des agents via Send API LangGraph
-- [ ] Support wolof — questions en wolof → réponses en wolof
-
-### Phase 4 — Production
-
-- [ ] GitHub Actions CI/CD (lint → tests → build → deploy)
-- [ ] Docker + docker-compose
-- [ ] Frontend v2 React (remplacement Streamlit)
-- [ ] Scrapers automatiques ANSD / DPEE / BCEAO
-- [ ] Alertes sur nouvelles publications officielles
-
----
-
 ## Exemples de questions
 
 ```
