@@ -17,13 +17,12 @@ dependencies = [
     # Vector store
     "chromadb>=0.5.0",
     "rank-bm25>=0.2.2",
-    # Qdrant hybrid store (Phase 3 upgrade — USE_QDRANT=true to activate)
+    # Qdrant hybrid store (USE_QDRANT=true to activate)
     "qdrant-client>=1.9.0",
     "fastembed>=0.3.0",
     # Voyage-3 embeddings (used by QdrantStore)
     "voyageai>=0.3.0",
     # Reranking
-    "sentence-transformers>=3.0.0",
     # Cohere Rerank v3.5 (USE_COHERE_RERANK=true to activate)
     "cohere>=5.0.0",
     # MCP server
@@ -50,9 +49,65 @@ dependencies = [
     "loguru>=0.7.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+]
+
 [build-system]
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["agents*", "api*", "frontend*", "frontend_public*", "ingestion*", "vectorstore*"]
+
+# ── pytest ────────────────────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests — require a real ANTHROPIC_API_KEY and indexed ChromaDB",
+    "eval: LLM-as-judge evaluation suite",
+]
+addopts = "-v --tb=short"
+
+# ── ruff ─────────────────────────────────────────────────────────────────────
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line too long — handled by formatter
+    "B008",   # function calls in default args (FastAPI pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F811", "S101"]
+
+# ── mypy ──────────────────────────────────────────────────────────────────────
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+no_strict_optional = true
+warn_unused_ignores = true
+
+# ── coverage ──────────────────────────────────────────────────────────────────
+
+[tool.coverage.run]
+source = ["agents", "api"]
+omit = ["tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "@pytest.mark.integration",
+]
