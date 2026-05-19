@@ -10,8 +10,12 @@ from api.routes import documents, health, query
 
 app = FastAPI(
     title="SenStat API",
-    description="Multi-agent RAG system for official Senegalese statistics",
-    version="0.1.0",
+    description=(
+        "Système RAG multi-agents pour les statistiques officielles du Sénégal. "
+        "12 sources institutionnelles indexées : ANSD (RGPH-5, BDEF, ENES, NEER), "
+        "FMI (WEO), Banque Mondiale, DGTCP, Cour des Comptes, DAPSA, PNUD, ARTP."
+    ),
+    version="0.3.0",
 )
 
 # CORS: locked to explicit origins in production.

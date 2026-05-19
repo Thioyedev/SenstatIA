@@ -22,7 +22,7 @@ lang = st.session_state.get("lang", "fr")
 
 API_URL = "http://localhost:8000"
 
-# ── Live stats ──────────────────────────────────────────────────────────────────
+# ── Live stats ──────────────────────────────────────────────────────────────────────────
 try:
     health        = httpx.get(f"{API_URL}/health", timeout=3).json()
     docs          = httpx.get(f"{API_URL}/documents", timeout=5).json()
@@ -30,8 +30,8 @@ try:
     sources_count = len(docs)
     is_online     = True
 except Exception:
-    chunks_total  = 1887
-    sources_count = 4
+    chunks_total  = 7571
+    sources_count = 12
     docs          = []
     is_online     = False
 
@@ -62,7 +62,7 @@ status_dot = (
     else f'<span class="status-offline"></span> {s["offline"]}'
 )
 
-# ── Hero ─────────────────────────────────────────────────────────────────────────
+# ── Hero ──────────────────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="hero">
     <div style="position:relative;z-index:1;">
@@ -74,41 +74,45 @@ st.markdown(f"""
         <div class="hero-title">SenStat</div>
         <div class="hero-sub">{h["sub"]}</div>
         <span class="hero-pill">ANSD</span>
-        <span class="hero-pill">DPEE</span>
-        <span class="hero-pill">BCEAO</span>
+        <span class="hero-pill">FMI</span>
         <span class="hero-pill">Banque Mondiale</span>
+        <span class="hero-pill">ARTP</span>
+        <span class="hero-pill">DGTCP</span>
+        <span class="hero-pill">Cour des Comptes</span>
+        <span class="hero-pill">PNUD</span>
+        <span class="hero-pill">DAPSA</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Metrics ──────────────────────────────────────────────────────────────────────
+# ── Metrics ────────────────────────────────────────────────────────────────────────────────
 c1, c2, c3, c4 = st.columns(4, gap="small")
-with c1: metric_card("🏛", sources_count, "Sources officielles" if lang == "fr" else "Official sources", "ANSD · DPEE · BCEAO")
-with c2: metric_card("📦", f"{chunks_total:,}", "Chunks indexés" if lang == "fr" else "Indexed chunks", "texte + tableaux" if lang == "fr" else "text + tables")
-with c3: metric_card("🧠", "E5-multilingual", "Modèle d'embedding" if lang == "fr" else "Embedding model", "Français natif" if lang == "fr" else "Native French support")
-with c4: metric_card("⚡", "Claude Sonnet 4.6", "LLM", "Anthropic")
+with c1: metric_card("🏗", sources_count, "Sources officielles" if lang == "fr" else "Official sources", "ANSD · FMI · BM · ARTP · DGTCP · PNUD · DAPSA")
+with c2: metric_card("📦", f"{chunks_total:,}", "Chunks indexés" if lang == "fr" else "Indexed chunks", "texte + tableaux + séries" if lang == "fr" else "text + tables + series")
+with c3: metric_card("🧠", "E5-multilingual", "Modèle d'embedding" if lang == "fr" else "Embedding model", "1 024 dim · Français natif" if lang == "fr" else "1 024 dim · Native French")
+with c4: metric_card("⚡", "Haiku + Sonnet", "Anthropic Claude", "routing + synthèse" if lang == "fr" else "routing + synthesis")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Demo queries ──────────────────────────────────────────────────────────────────
+# ── Demo queries ──────────────────────────────────────────────────────────────────────────────
 section_label(h["demo"])
 
 DEMOS = {
     "fr": [
         ("👥", "Population totale selon le RGPH-5 2023"),
-        ("💰", "Taux de pauvreté au Sénégal en 2021 ?"),
-        ("📈", "Évolution du PIB entre 2015 et 2023"),
-        ("⚖️", "Accès à l'eau potable : Dakar vs Ziguinchor"),
-        ("💼", "Taux de chômage par région — RGPH-5"),
-        ("🌾", "Principaux secteurs économiques du Sénégal"),
+        ("📡", "Taux de pénétration mobile et internet au Sénégal en 2024"),
+        ("📈", "Évolution du PIB du Sénégal entre 2015 et 2023"),
+        ("🏦", "Quel est le niveau de la dette publique du Sénégal en 2024 ?"),
+        ("💼", "Taux de chômage des jeunes au Sénégal"),
+        ("🌍", "Quel est l'IDH du Sénégal et son classement mondial ?"),
     ],
     "en": [
         ("👥", "Total population according to RGPH-5 2023"),
-        ("💰", "Poverty rate in Senegal in 2021?"),
-        ("📈", "GDP evolution between 2015 and 2023"),
-        ("⚖️", "Access to clean water: Dakar vs Ziguinchor"),
-        ("💼", "Unemployment rate by region — RGPH-5"),
-        ("🌾", "Main economic sectors of Senegal"),
+        ("📡", "Mobile and internet penetration rate in Senegal in 2024"),
+        ("📈", "GDP evolution in Senegal between 2015 and 2023"),
+        ("🏦", "What is the public debt level of Senegal in 2024?"),
+        ("💼", "Youth unemployment rate in Senegal"),
+        ("🌍", "What is Senegal's HDI and its global ranking?"),
     ],
 }
 
@@ -121,11 +125,16 @@ for i, (icon, q) in enumerate(DEMOS[lang]):
 
 st.markdown("<hr class='section-divider'>", unsafe_allow_html=True)
 
-# ── Sources ───────────────────────────────────────────────────────────────────────
+# ── Sources ───────────────────────────────────────────────────────────────────────────────────
 if docs:
     section_label("Sources indexées" if lang == "fr" else "Indexed sources")
     cols = st.columns(len(docs), gap="small")
-    ICONS = {"ANSD": "🏛", "DPEE": "📈", "BCEAO": "🏦", "Banque Mondiale": "🌍"}
+    ICONS = {
+        "ANSD": "🏗", "DPEE": "📈", "BCEAO": "🏦",
+        "Banque Mondiale": "🌍", "FMI": "📊", "ARTP": "📡",
+        "DGTCP": "🏦", "Cour des Comptes": "⚖️", "PNUD": "🌍",
+        "DAPSA": "🌾", "OIT": "💼",
+    }
 
     for col, doc in zip(cols, docs):
         icon = ICONS.get(doc["institution"], "📄")
@@ -155,8 +164,12 @@ if docs:
                 st.session_state["prefill_query"] = h["src_query"].format(doc["report_name"])
                 st.switch_page("pages/1_💬_Assistant.py")
 
-# ── Footer ────────────────────────────────────────────────────────────────────────
+# ── Footer ──────────────────────────────────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
-footer = "SenStat v0.1 · Données ANSD, DPEE, BCEAO · Claude Sonnet 4.6 + ChromaDB + LangGraph"
+footer = (
+    "SenStat v0.3 · 12 sources officielles · "
+    "ANSD · FMI · Banque Mondiale · ARTP · DGTCP · Cour des Comptes · PNUD · DAPSA · "
+    "Claude Haiku (routing) + Sonnet (synthèse) · ChromaDB + LangGraph"
+)
 st.markdown(f'<div style="text-align:center;color:#bbb;font-size:0.73rem;padding:4px 0 12px 0;">{footer}</div>',
             unsafe_allow_html=True)
