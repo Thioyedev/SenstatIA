@@ -23,26 +23,26 @@ senstat/
 │
 ├── ingestion/                   # Data pipeline
 │   ├── __init__.py
-│   ├── scrapers/
-│   │   ├── ansd_scraper.py      # Scrape ansd.sn publications
-│   │   ├── dpee_scraper.py      # Bulletins mensuel DPEE
-│   │   ├── bceao_scraper.py     # Rapports BCEAO
-│   │   └── worldbank_scraper.py # World Bank API (country=SN)
+│   ├── scrapers/                # EMPTY (.gitkeep only) — Phase 4
+│   ├── api_fetchers/            # Structured-API ingestion (no scraping)
+│   │   ├── worldbank.py
+│   │   ├── faostat.py
+│   │   ├── ilostat.py
+│   │   └── imf_weo.py
 │   ├── extractors/
-│   │   ├── pdf_extractor.py     # PyMuPDF + pdfplumber
-│   │   ├── table_extractor.py   # Tables → markdown/JSON
-│   │   └── ocr_extractor.py     # Tesseract for scanned PDFs
+│   │   ├── pdf_extractor.py     # pdfplumber + Tesseract OCR fallback
+│   │   └── table_extractor.py   # Tables → markdown/JSON
 │   ├── chunkers/
-│   │   ├── text_chunker.py      # RecursiveCharacterTextSplitter
-│   │   └── table_chunker.py     # Preserve table structure in chunks
-│   ├── embedder.py              # multilingual-e5-large embeddings
+│   │   └── text_chunker.py      # RecursiveCharacterTextSplitter
+│   ├── colpali_indexer.py       # Page images → ColQwen2 → Qdrant multivector
 │   └── pipeline.py              # Orchestrates full ingestion
 │
 ├── vectorstore/
 │   ├── __init__.py
-│   ├── chroma_store.py          # Local ChromaDB
-│   ├── qdrant_store.py          # Qdrant Cloud (prod)
-│   └── schemas.py               # Document metadata schemas
+│   ├── chroma_store.py          # Local ChromaDB (default)
+│   └── qdrant_store.py          # Qdrant, dense + sparse (USE_QDRANT=true)
+│
+├── mcp_server.py                # MCP server exposing SenStat as tools
 │
 ├── agents/                      # LangGraph multi-agent system
 │   ├── __init__.py
@@ -106,14 +106,15 @@ senstat/
 | Layer | Technology | Notes |
 |---|---|---|
 | PDF extraction | `PyMuPDF` + `pdfplumber` | pdfplumber for tables, PyMuPDF for text |
-| OCR | `pytesseract` + `pdf2image` | For scanned ANSD reports |
+| OCR | `pytesseract` + `pdf2image` | Fallback in `pdf_extractor.py`; needs `tesseract`, `fra` langdata, `poppler` |
 | Table extraction | `camelot-py` | Lattice mode for bordered tables |
 | Chunking | `langchain-text-splitters` | RecursiveCharacterTextSplitter, 512 tokens, 64 overlap |
 | Embeddings | `intfloat/multilingual-e5-large` | HuggingFace, French support |
 | Vector store | `chromadb` (dev) → `qdrant-client` (prod) | Filter by metadata |
 | Sparse search | `rank_bm25` | Hybrid retrieval |
-| Reranking | `cross-encoder/ms-marco-MiniLM-L-6-v2` | After hybrid fusion |
-| LLM | `anthropic` SDK — `claude-sonnet-4-20250514` | Citations + statistical reasoning |
+| Reranking | Cohere `rerank-v3.5` or `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cohere when `USE_COHERE_RERANK=true`, else CrossEncoder |
+| Visual retrieval | `colpali` / ColQwen2 → Qdrant multivector | Optional, `USE_COLPALI=true` |
+| LLM | `anthropic` SDK | Synthesis: `claude-sonnet-4-6`. Router + all specialists: `claude-haiku-4-5-20251001` |
 | Agent framework | `langgraph` | StateGraph, Send API for parallel agents |
 | Statistical compute | `pandas` + `statsmodels` + `scipy` | Trend agent, compute agent |
 | Visualization | `plotly` | Interactive charts, source watermark |
@@ -134,6 +135,17 @@ QDRANT_API_KEY=...
 QDRANT_COLLECTION=senstat
 EMBEDDING_MODEL=intfloat/multilingual-e5-large
 EMBEDDING_DEVICE=cpu
+
+# Backend toggles — all default to false (ChromaDB + CrossEncoder path)
+USE_QDRANT=false
+USE_COLPALI=false
+USE_COHERE_RERANK=false
+QDRANT_PATH=
+QDRANT_COLPALI_COLLECTION=senstat_visual
+COLPALI_TOP_K=3
+COHERE_API_KEY=
+VOYAGE_API_KEY=
+API_URL=http://localhost:8000
 DATA_RAW_DIR=./data/raw
 DATA_PROCESSED_DIR=./data/processed
 API_HOST=0.0.0.0
@@ -149,7 +161,7 @@ LOG_LEVEL=INFO
 ```python
 class AgentState(TypedDict):
     query: str
-    intent: str                          # lookup | trend | compare | compute | viz | mixed
+    intent: str                          # lookup | trend | compare | compute | viz | compare_viz | mixed
     retrieved_chunks: List[dict]
     trend_output: Optional[dict]
     compare_output: Optional[dict]
@@ -158,14 +170,32 @@ class AgentState(TypedDict):
     synthesis: str
     citations: List[dict]
     messages: Annotated[List[BaseMessage], operator.add]
+    conversation_history: List[dict]     # [{"role": "user"|"assistant", "content": str}]
 ```
+
+### Graph topology
+```
+query_rewriter → router → [prep_viz] → retrieval → fan-out by intent
+                                                    ├── trend   → [viz] → synthesis
+                                                    ├── compare → [viz] → synthesis
+                                                    ├── compute →         synthesis
+                                                    └── (lookup)          synthesis
+```
+`mixed` fans out to trend + compare in parallel via the Send API. The router
+returns a *list* of intents; `viz` is a modifier collapsed onto the data path,
+which is what produces `compare_viz`. `prep_viz` strips visualization keywords
+from the query so retrieval fetches data chunks rather than matching on the word
+"graphique".
 
 ### Retrieval Strategy
 1. Dense retrieval (semantic) via ChromaDB
-2. Sparse retrieval (BM25 keyword)
+2. Sparse retrieval (BM25 keyword) — Chroma path only; Qdrant fuses dense +
+   sparse natively and needs no BM25 sidecar
 3. Reciprocal Rank Fusion
-4. CrossEncoder reranking
-5. Top-k with metadata filter
+4. Optional ColPali visual page refs merged into the candidate pool
+5. Reranking — Cohere `rerank-v3.5`, or CrossEncoder with `CE_THRESHOLD` to drop
+   off-topic chunks
+6. Top-k with metadata filter
 
 ### Citation Format
 Every statistic cited as: `[ANSD — EHCVM 2021, p.47]`
@@ -175,7 +205,18 @@ Every statistic cited as: `[ANSD — EHCVM 2021, p.47]`
 ## Key Implementation Notes
 
 ### PDF Quality Issues (ANSD-specific)
-Many ANSD PDFs are scanned — always try text extraction first, OCR as fallback.
+Text extraction first, OCR as fallback — but **OCR output is kept only when it
+recovers more characters than pdfplumber did.** On partially-extracted pages
+(charts, tables) Tesseract typically returns *less* than pdfplumber, and an
+earlier unconditional overwrite was destroying valid text on 6 of 8 sampled
+pages in `SES_2022_2023.pdf`.
+
+Measured 2026-09-17: the corpus currently in `data/raw/` is **not scanned**.
+All 5 PDFs yield extractable text; the 55 blank pages in `Rapport-def-RGPH-5.pdf`
+contain no images at all. Re-measure before assuming OCR is worth tuning — check
+`page.images` on empty pages, not just character counts.
+
+Pages recovered by OCR carry `ocr: true` in their chunk metadata.
 
 ### Methodology Change Detection
 ```python
@@ -196,13 +237,18 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Repo setup, pyproject.toml, Dockerfile, docker-compose
 - [x] PDF extraction pipeline (`pdf_extractor.py`, `table_extractor.py`)
 - [x] ChromaDB setup (`chroma_store.py`)
-- [x] Ingestion pipeline (`pipeline.py`, 4 sources registered)
+- [x] Ingestion pipeline (`pipeline.py`) — 26 sources registered in
+      `data/sources.json` across 16 institutions; 12 indexed, 13 pending,
+      1 excluded (as of 2026-09-17)
 - [x] Basic retrieval agent + FastAPI `/query` endpoint
 - [x] Streamlit MVP — two frontends: public (`frontend_public/`) + pro (`frontend/`)
 - [x] Bilingual public frontend (FR/EN) with theme cards, FAQ, search
-- [ ] OCR extractor (`ocr_extractor.py` — not yet implemented)
+- [x] OCR fallback — implemented inline in `pdf_extractor.py::_ocr_page`, not a
+      separate `ocr_extractor.py`. Tesseract + `fra` + poppler required.
 - [ ] Table chunker (`table_chunker.py` — not yet implemented)
-- [ ] Scrapers (`ingestion/scrapers/` — stub only, no automated fetching)
+- [ ] Scrapers (`ingestion/scrapers/` — empty, only `.gitkeep`). API fetchers
+      exist instead under `ingestion/api_fetchers/` (World Bank, FAOSTAT,
+      ILOSTAT, IMF WEO).
 
 ### Phase 2 — Multi-Agent ✓ (Complete)
 - [x] LangGraph `StateGraph`: router → retrieval → [trend|compare] → synthesis
@@ -215,30 +261,51 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Inline citation stripping (prompt rule + regex safety net in API)
 - [x] RAGAS evaluation pipeline + golden dataset (20 questions, 6 themes)
 
-### Phase 3 — Advanced Agents (Next)
-- [ ] Compute agent — Python sandbox via `subprocess` for projections/ratios
-- [ ] Viz agent — Plotly charts with source watermark, returned as HTML/JSON
-- [ ] Parallel agent execution — LangGraph Send API for trend+compare simultaneously
-- [ ] Router cost optimisation — switch router from Sonnet to Haiku (simple classification)
-- [ ] Qdrant migration (`qdrant_store.py`) for production vector store
-- [ ] Unit + integration tests (`tests/unit/`, `tests/integration/` — currently empty stubs)
+### Phase 3 — Advanced Agents ✓ (Complete, except tests)
+- [x] Compute agent — `subprocess` sandbox, Haiku, timeout 8s
+- [x] Viz agent — Plotly trend/compare charts with source watermark
+- [x] Parallel agent execution — Send API fan-out on `mixed` intent
+- [x] Router cost optimisation — router and every specialist now run Haiku 4.5;
+      only synthesis uses Sonnet
+- [x] Qdrant store (`qdrant_store.py`) — dense + sparse native fusion, gated by
+      `USE_QDRANT` (defaults to ChromaDB)
+- [x] Query rewriter node — resolves follow-up questions against history
+- [x] ColPali visual indexing (`colpali_indexer.py`) — gated by `USE_COLPALI`
+- [x] Cohere `rerank-v3.5` — gated by `USE_COHERE_RERANK`, CrossEncoder fallback
+- [ ] Unit + integration tests (`tests/unit/`, `tests/integration/` — still only
+      `__init__.py`; this is the one Phase 3 item genuinely outstanding)
 
 ### Phase 4 — Production
 - [ ] GitHub Actions CI/CD (lint → test → build → deploy)
 - [ ] Docker hardening: health checks on frontend services, non-root user
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
-- [ ] Scrapers: automate PDF fetching from ANSD, DPEE, BCEAO, World Bank API
+- [ ] Scrapers: automate PDF fetching from ANSD, DPEE, BCEAO (World Bank,
+      FAOSTAT, ILOSTAT and IMF WEO already covered by `api_fetchers/`)
 
 ---
 
-## Known Gaps (as of Phase 2 completion)
+## Known Gaps (verified against code 2026-09-17)
 
 | Gap | Impact | Fix in |
 |---|---|---|
-| `compute` / `viz` intents fall through to synthesis without specialist | Compute/viz queries get generic text answer | Phase 3 |
-| Router uses Sonnet for intent classification (overkill) | ~2× higher cost per query | Phase 3 |
-| No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
-| OCR fallback missing → scanned PDFs silently skipped | Poor recall on older ANSD reports | Phase 3 |
 | Zero tests → no regression safety net | Risk when refactoring agents | Phase 3 |
-| RAGAS eval pre-dates trend/compare agents | Eval scores don't reflect current pipeline | Re-run after Phase 3 |
+| No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
+| `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
+| RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
+| Qdrant + ColPali + Cohere rerank off by default | Prod path is exercised less than the Chroma path | Phase 4 |
+
+### Corrected claims
+
+Entries previously listed here that no longer hold, kept so they are not
+re-added from memory:
+
+- **"OCR fallback missing"** — false. OCR has always been wired into
+  `extract_text_from_pdf`. Separately, measured 2026-09-17: the current corpus
+  (5 PDFs, 962 pages) contains **no scanned content** — every document yields
+  extractable text, and the 55 blank pages in `Rapport-def-RGPH-5.pdf` hold no
+  images. OCR gains here are marginal; do not prioritise OCR quality work on
+  recall grounds until genuinely scanned sources are ingested.
+- **"Router uses Sonnet"** — false. Router and all specialists run Haiku 4.5.
+- **"`compute`/`viz` fall through to synthesis"** — false. Both are wired in
+  `graph.py` with dedicated nodes.
