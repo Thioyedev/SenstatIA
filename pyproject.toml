@@ -50,6 +50,15 @@ dependencies = [
     "loguru>=0.7.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
 [build-system]
 requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
