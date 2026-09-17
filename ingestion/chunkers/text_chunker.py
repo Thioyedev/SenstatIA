@@ -22,6 +22,7 @@ def chunk_pages(pages: list[dict], source_metadata: dict) -> list[dict]:
                 "text": text,
                 "page_number": page["page_number"],
                 "chunk_index": j,
+                "ocr": bool(page.get("ocr", False)),
                 **source_metadata  # institution, report_name, year, etc.
             })
 
