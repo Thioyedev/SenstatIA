@@ -232,7 +232,22 @@ METHODOLOGY_BREAKS = {
 ```
 
 ### Compute Agent Sandbox
-Use `subprocess` with timeout, never raw `exec()`.
+LLM-generated code runs in two layers, and both must be defeated to reach the OS:
+
+1. **AST validation** (`_validate_ast`): imports limited to `math`/`statistics`;
+   reflection builtins refused (`getattr`, `type`, `dir`, …); **every dunder
+   attribute, any string literal containing a dunder, and `str.format`/
+   `format_map` refused**. A builtin-name blocklist alone was bypassed
+   (2026-10-08): code walked the object graph through dunder attributes to `os`
+   without naming any forbidden builtin.
+2. **Restricted runtime**: a fixed runner reads the code on stdin (never spliced
+   into source) and `exec`s it with `__builtins__` = an allowlist plus an
+   `__import__` that only returns `math`/`statistics`; RLIMIT_AS 512 MB and
+   RLIMIT_CPU 5 s in the child (RLIMIT_AS is not enforced on macOS).
+
+Not isolated: the child still runs as the API user, with its filesystem and
+network. A separate user / nsjail / no-network container is the next step if the
+corpus ever ingests untrusted documents — chunk text reaches the code prompt.
 
 ---
 

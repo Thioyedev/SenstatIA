@@ -1,6 +1,8 @@
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from agents.compute_agent import _run_sandbox, _validate_ast, compute_agent
 
 
@@ -96,3 +98,43 @@ class TestComputeAgent:
             c.messages.create.side_effect = Exception("error")
             result = compute_agent({**base_state, "intent": "compute"})
         assert result["compute_output"] is None
+
+
+class TestSandboxEscapeRoutes:
+    """Regression: the validator once blocked builtin names only, so code could
+    walk the object graph through dunder attributes and reach os without naming
+    a forbidden builtin. Each test pins one route into that graph shut."""
+
+    @pytest.mark.parametrize(
+        "code",
+        [
+            "x = ().__class__",
+            "x = (1).__dict__",
+            "x = f'{(1).__class__}'",
+            "x = 'a' + '__class__'",
+            "x = '{0.__class__}'.format(1)",
+            "x = '{a}'.format_map({'a': 1})",
+            "x = getattr(1, 'real')",
+            "x = type(1)",
+            "x = dir()",
+            "from os import path",
+        ],
+    )
+    def test_route_is_rejected(self, code):
+        ok, _ = _validate_ast(code)
+        assert not ok
+
+    def test_from_math_import_is_allowed(self):
+        assert _run_sandbox("from math import sqrt\nresult = sqrt(16)") == {"result": 4.0}
+
+    def test_fstring_without_dunder_is_allowed(self):
+        assert _run_sandbox("v = 37.5\nresult = f'{v:.1f} %'") == {"result": "37.5 %"}
+
+    def test_builtin_outside_allowlist_fails_at_runtime(self):
+        # id passes the AST check; the restricted namespace still refuses it.
+        out = _run_sandbox("result = id(1)")
+        assert "NameError" in out["error"]
+
+    def test_code_reaches_the_child_via_stdin_not_source(self):
+        # Triple quotes would have broken the old source-splicing wrapper.
+        assert _run_sandbox('result = len("""ab""")') == {"result": 2}
