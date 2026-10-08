@@ -226,6 +226,56 @@ def _rerank(query: str, docs: list[dict]) -> list[dict]:
     return reranked
 
 
+# ── BM25 over the whole corpus (Chroma path) ──────────────────────────────────
+# Built lazily from every chunk in the collection and rebuilt when the chunk count
+# changes. Scoring the corpus rather than the dense hits is the point: a chunk that
+# only matches on an exact term (an acronym, a code, a figure) can still surface.
+_bm25 = None  # (BM25Okapi, chunks, cache key)
+_TOKEN_RE = re.compile(r"\w+")
+
+
+def _tokenize(text: str) -> list[str]:
+    return _TOKEN_RE.findall(text.lower())
+
+
+def _bm25_index(store):
+    global _bm25
+    from rank_bm25 import BM25Okapi
+
+    count = store.collection.count()
+    key = (id(store.collection), count)
+    if _bm25 is None or _bm25[2] != key:
+        if count == 0:
+            _bm25 = (None, [], key)
+        else:
+            data = store.collection.get(include=["documents", "metadatas"])
+            chunks = [
+                {"text": doc, **(meta or {})}
+                for doc, meta in zip(data["documents"], data["metadatas"], strict=True)
+            ]
+            _bm25 = (BM25Okapi([_tokenize(c["text"]) for c in chunks]), chunks, key)
+            logger.info(f"BM25 index built over {count} chunks")
+    return _bm25[0], _bm25[1]
+
+
+def _bm25_search(store, query: str, n_results: int, src_filter: dict | None) -> list[dict]:
+    bm25, chunks = _bm25_index(store)
+    if bm25 is None:
+        return []
+    allowed = None
+    if src_filter:
+        wanted = src_filter["source_id"]
+        allowed = set(wanted["$in"]) if isinstance(wanted, dict) else {wanted}
+    scores = bm25.get_scores(_tokenize(query))
+    hits = [
+        i
+        for i in range(len(chunks))
+        if scores[i] > 0 and (allowed is None or chunks[i].get("source_id") in allowed)
+    ]
+    hits.sort(key=lambda i: scores[i], reverse=True)
+    return [chunks[i] for i in hits[:n_results]]
+
+
 def _reciprocal_rank_fusion(rankings: list[list[dict]], k: int = 60) -> list[dict]:
     scores: dict[str, float] = {}
     docs: dict[str, dict] = {}
@@ -267,24 +317,12 @@ def retrieval_agent(state: AgentState) -> dict:
             text_candidates = store.search(query, n_results=20)
         fused = text_candidates
     else:
-        from rank_bm25 import BM25Okapi
-
         dense = store.search(query, n_results=20, where=src_filter)
         if len(dense) < TOP_K and src_filter is not None:
             logger.debug(f"Source filter → {len(dense)} results, falling back to full corpus")
             dense = store.search(query, n_results=20)
             src_filter = None
-        corpus = [c["text"] for c in dense]
-        if corpus:
-            tokenized = [doc.split() for doc in corpus]
-            bm25 = BM25Okapi(tokenized)
-            bm25_scores = bm25.get_scores(query.split())
-            sparse = [
-                dense[i]
-                for i in sorted(range(len(dense)), key=lambda x: bm25_scores[x], reverse=True)
-            ]
-        else:
-            sparse = []
+        sparse = _bm25_search(store, query, 20, src_filter)
         fused = _reciprocal_rank_fusion([dense, sparse])[:20]
 
     # ── ColPali visual retrieval (fan-out) ────────────────────────────────────
