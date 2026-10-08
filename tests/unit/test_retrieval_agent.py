@@ -1,6 +1,11 @@
 from unittest.mock import MagicMock, patch
 
-from agents.retrieval_agent import _bm25_index, _detect_source_filter, retrieval_agent
+from agents.retrieval_agent import (
+    _bm25_index,
+    _detect_source_filter,
+    _reciprocal_rank_fusion,
+    retrieval_agent,
+)
 
 RAW_CHUNKS = [
     {"text": f"chunk {i}", "source_id": "ehcvm_2021", "chunk_id": f"c{i}"} for i in range(5)
@@ -125,3 +130,39 @@ class TestBM25:
         }
         _bm25_index(store)
         assert store.collection.get.call_count == 2
+
+
+class TestFusionKey:
+    HEADER = "RAPPORT PRELIMINAIRE RECENSEMENT GENERAL DE LA POPULATION ET DE L'HABITAT " * 2
+
+    def _chunk(self, page, idx, tail):
+        return {
+            "text": self.HEADER + tail,
+            "source_id": "rgph5_preliminaire",
+            "page_number": page,
+            "chunk_index": idx,
+        }
+
+    def test_distinct_chunks_sharing_a_prefix_both_survive(self):
+        # Regression: fusion keyed on text[:80], so 18 census chunks that open on
+        # the same running header collapsed into one and a BM25 hit was dropped.
+        a, b = (
+            self._chunk(3, 0, "population 18 millions"),
+            self._chunk(9, 1, "ménages 2,1 millions"),
+        )
+
+        fused = _reciprocal_rank_fusion([[a], [b]])
+
+        assert [c["page_number"] for c in fused] == [3, 9]
+
+    def test_same_chunk_from_both_searches_is_merged_and_ranked_first(self):
+        a, b = self._chunk(3, 0, "x"), self._chunk(9, 1, "y")
+
+        fused = _reciprocal_rank_fusion([[b, a], [a]])
+
+        assert [c["page_number"] for c in fused] == [3, 9]
+
+    def test_doc_without_metadata_falls_back_to_full_text(self):
+        a, b = {"text": self.HEADER + "1"}, {"text": self.HEADER + "2"}
+
+        assert len(_reciprocal_rank_fusion([[a], [b]])) == 2

@@ -243,7 +243,11 @@ def _bm25_index(store):
     from rank_bm25 import BM25Okapi
 
     count = store.collection.count()
-    key = (id(store.collection), count)
+    # Keyed on the collection name, not id(collection): a GC'd collection object
+    # can hand its id() to a new one and silently serve a stale index. count still
+    # misses an edit that keeps the chunk total unchanged; the corpus is
+    # append-mostly, so a re-ingest that changes content also changes count.
+    key = (store.collection.name, count)
     if _bm25 is None or _bm25[2] != key:
         if count == 0:
             _bm25 = (None, [], key)
@@ -276,12 +280,27 @@ def _bm25_search(store, query: str, n_results: int, src_filter: dict | None) -> 
     return [chunks[i] for i in hits[:n_results]]
 
 
+def _chunk_key(doc: dict):
+    """Stable identity for fusion/dedup.
+
+    (source_id, page_number, chunk_index) is unique across the corpus. No chunk
+    carries a ``chunk_id`` field, so the previous ``doc.get("chunk_id") or
+    doc["text"][:80]`` always fell back to an 80-char prefix — and distinct
+    chunks that share boilerplate (table headers, cover text) collapsed into one,
+    dropping a real BM25-only hit. Fall back to the full text, never a prefix,
+    for docs that lack the metadata (e.g. ColPali page refs)."""
+    sid, page, idx = doc.get("source_id"), doc.get("page_number"), doc.get("chunk_index")
+    if sid is not None and page is not None and idx is not None:
+        return (sid, page, idx)
+    return doc["text"]
+
+
 def _reciprocal_rank_fusion(rankings: list[list[dict]], k: int = 60) -> list[dict]:
-    scores: dict[str, float] = {}
-    docs: dict[str, dict] = {}
+    scores: dict = {}
+    docs: dict = {}
     for ranking in rankings:
         for rank, doc in enumerate(ranking):
-            doc_id = doc.get("chunk_id") or doc["text"][:80]
+            doc_id = _chunk_key(doc)
             scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank + 1)
             docs[doc_id] = doc
     return [docs[i] for i in sorted(scores, key=lambda x: scores[x], reverse=True)]
