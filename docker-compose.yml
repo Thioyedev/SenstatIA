@@ -16,8 +16,12 @@ services:
     volumes:
       - ./data/chroma:/app/data/chroma
       - model_cache:/root/.cache/huggingface
+    # Bound to loopback: nginx reaches these over the compose network by service
+    # name, so the host port is only for local debugging. Published on 0.0.0.0 it
+    # would be internet-reachable — Docker's iptables rules bypass ufw — exposing
+    # the unauthenticated, paid-LLM API past nginx. Same for the two frontends.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
@@ -37,7 +41,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     depends_on:
       api:
         condition: service_healthy
@@ -54,7 +58,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8502:8502"
+      - "127.0.0.1:8502:8502"
     depends_on:
       api:
         condition: service_healthy
