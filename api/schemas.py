@@ -34,7 +34,7 @@ class DocumentInfo(BaseModel):
     source_id: str
     institution: str
     report_name: str
-    year: int
+    year: int | None = None  # 9 of 26 registry sources carry no year
     topics: list[str]
     url: str
     chunk_count: int

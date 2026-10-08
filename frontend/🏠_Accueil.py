@@ -186,7 +186,7 @@ if docs:
     <div style="font-size:1.5rem;margin-bottom:8px;">{icon}</div>
     <div style="margin-bottom:6px;">
         <span class="badge badge-green">{doc["institution"]}</span>
-        <span class="badge badge-blue">{doc["year"]}</span>
+        <span class="badge badge-blue">{doc["year"] or "—"}</span>
     </div>
     <div style="font-weight:600;font-size:0.88rem;color:#1A1A1A;margin:8px 0;min-height:36px;line-height:1.35;">
         {doc["report_name"]}

@@ -97,7 +97,7 @@ if docs:
     for doc in docs:
         icon = INSTITUTION_ICONS.get(doc["institution"], "📄")
         with st.expander(
-            f"{icon} **{doc['report_name']}**  —  {doc['institution']} ({doc['year']})",
+            f"{icon} **{doc['report_name']}**  —  {doc['institution']} ({doc['year'] or '—'})",
             expanded=True,
         ):
             col_info, col_stats = st.columns([3, 1])
@@ -107,7 +107,7 @@ if docs:
                     f"""
 <div style="margin-bottom:10px;">
     <span class="badge">{doc["institution"]}</span>
-    <span class="badge" style="background:#E3F2FD;color:#1565C0;">{doc["year"]}</span>
+    <span class="badge" style="background:#E3F2FD;color:#1565C0;">{doc["year"] or "—"}</span>
 </div>
 """,
                     unsafe_allow_html=True,
