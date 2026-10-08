@@ -73,14 +73,11 @@ senstat/
 │   │   └── charts.py            # Chart rendering
 │   └── static/
 │
-├── tests/
+├── tests/                       # Ingestion only — no agent/retrieval/API tests yet
 │   ├── unit/
-│   │   ├── test_extractors.py
-│   │   ├── test_chunkers.py
-│   │   └── test_agents.py
+│   │   └── test_extractors.py   # OCR fallback decision table (Tesseract mocked)
 │   └── integration/
-│       ├── test_pipeline.py
-│       └── test_query_e2e.py
+│       └── test_ocr_pipeline.py # OCR against a real Tesseract
 │
 ├── data/
 │   ├── raw/                     # Downloaded PDFs (gitignored)
@@ -272,8 +269,10 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Query rewriter node — resolves follow-up questions against history
 - [x] ColPali visual indexing (`colpali_indexer.py`) — gated by `USE_COLPALI`
 - [x] Cohere `rerank-v3.5` — gated by `USE_COHERE_RERANK`, CrossEncoder fallback
-- [ ] Unit + integration tests (`tests/unit/`, `tests/integration/` — still only
-      `__init__.py`; this is the one Phase 3 item genuinely outstanding)
+- [ ] Unit + integration tests — partial. Ingestion is covered
+      (`test_extractors.py`, `test_ocr_pipeline.py`: OCR fallback). Agents,
+      retrieval and the API have none; this is the one Phase 3 item genuinely
+      outstanding
 
 ### Phase 4 — Production
 - [ ] GitHub Actions CI/CD (lint → test → build → deploy)
@@ -289,7 +288,7 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 | Gap | Impact | Fix in |
 |---|---|---|
-| Zero tests → no regression safety net | Risk when refactoring agents | Phase 3 |
+| No tests for agents, retrieval or API (ingestion/OCR only, as of 2026-10-08) | Risk when refactoring agents | Phase 3 |
 | No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
 | `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
 | RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
@@ -300,6 +299,10 @@ Use `subprocess` with timeout, never raw `exec()`.
 Entries previously listed here that no longer hold, kept so they are not
 re-added from memory:
 
+- **"Zero tests" / "`tests/` holds only `__init__.py`"** — false since
+  2026-09-17. `tests/unit/test_extractors.py` and
+  `tests/integration/test_ocr_pipeline.py` cover the OCR fallback. The gap that
+  remains is agents, retrieval and API.
 - **"OCR fallback missing"** — false. OCR has always been wired into
   `extract_text_from_pdf`. Separately, measured 2026-09-17: the current corpus
   (5 PDFs, 962 pages) contains **no scanned content** — every document yields
