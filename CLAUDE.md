@@ -42,7 +42,7 @@ senstat/
 │   ├── chroma_store.py          # Local ChromaDB (default)
 │   └── qdrant_store.py          # Qdrant, dense + sparse (USE_QDRANT=true)
 │
-├── mcp_server.py                # MCP server exposing SenStat as tools
+├── mcp_server.py                # MCP tools — a client of the HTTP API (API_URL)
 │
 ├── agents/                      # LangGraph multi-agent system
 │   ├── __init__.py
@@ -110,7 +110,7 @@ senstat/
 | OCR | `pytesseract` + `pdf2image` | Fallback in `pdf_extractor.py`; needs `tesseract`, `fra` langdata, `poppler` |
 | Table extraction | `camelot-py` | Lattice mode for bordered tables |
 | Chunking | `langchain-text-splitters` | RecursiveCharacterTextSplitter, 512 tokens, 64 overlap |
-| Embeddings | `intfloat/multilingual-e5-large` | HuggingFace, French support |
+| Embeddings | `intfloat/multilingual-e5-large` | Both stores by default; Qdrant can opt into `voyage-3-large` (`QDRANT_DENSE_EMBEDDER=voyage`) |
 | Vector store | `chromadb` (dev) → `qdrant-client` (prod) | Filter by metadata |
 | Sparse search | `rank_bm25` | Hybrid retrieval |
 | Reranking | Cohere `rerank-v3.5` or `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cohere when `USE_COHERE_RERANK=true`, else CrossEncoder |
@@ -145,6 +145,7 @@ QDRANT_PATH=
 QDRANT_COLPALI_COLLECTION=senstat_visual
 COLPALI_TOP_K=3
 COHERE_API_KEY=
+QDRANT_DENSE_EMBEDDER=local    # local = EMBEDDING_MODEL; voyage = voyage-3-large (paid)
 VOYAGE_API_KEY=
 API_URL=http://localhost:8000
 DATA_RAW_DIR=./data/raw
@@ -190,8 +191,11 @@ from the query so retrieval fetches data chunks rather than matching on the word
 
 ### Retrieval Strategy
 1. Dense retrieval (semantic) via ChromaDB
-2. Sparse retrieval (BM25 keyword) — Chroma path only; Qdrant fuses dense +
-   sparse natively and needs no BM25 sidecar
+2. Sparse retrieval (BM25 keyword) over the whole corpus, not just the dense
+   hits — Chroma path only; Qdrant fuses dense + BM42 sparse natively.
+   A Qdrant collection records the model that embedded it and the store refuses
+   to start against a mismatch, since e5-large and voyage-3-large are both
+   1024-d and a mismatch would return wrong results silently.
 3. Reciprocal Rank Fusion
 4. Optional ColPali visual page refs merged into the candidate pool
 5. Reranking — Cohere `rerank-v3.5`, or CrossEncoder with `CE_THRESHOLD` to drop
@@ -299,6 +303,8 @@ Use `subprocess` with timeout, never raw `exec()`.
 | `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
 | RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
 | Qdrant + ColPali + Cohere rerank off by default | Prod path is exercised less than the Chroma path | Phase 4 |
+| e5-large is used without its `query:` / `passage:` prefixes, in both stores | Below the model's documented retrieval quality; fixing it means re-embedding the whole index | Re-index |
+| `scripts/eval_retrieval.py` scores source precision on the first word of `report_name` | Every SES chunk counts as off-target; use `eval_retrieval_only.py`, which scores on `source_id` | Fix |
 
 ### Corrected claims
 
