@@ -280,7 +280,8 @@ Use `subprocess` with timeout, never raw `exec()`.
 ### Phase 4 — Production
 - [ ] GitHub Actions CI/CD — `ci.yml` exists (lint, unit tests, Docker build)
       and all three jobs passed on GitHub for the first time on 2026-10-08
-      (run 37794741477, commit 113bc04). No deploy job yet
+      (run 37794741477, commit 113bc04). A `deploy-staging` job exists but is
+      skipped until `STAGING_DEPLOY_ENABLED=true` (setup in `DEPLOY.md`)
 - [ ] Docker hardening: health checks on frontend services, non-root user
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap

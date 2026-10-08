@@ -156,6 +156,67 @@ docker compose up -d --build
 
 ---
 
+## Déploiement automatique du staging (CI)
+
+Le job `deploy-staging` de `.github/workflows/ci.yml` déploie chaque push sur
+`stg`, une fois lint, tests et build Docker passés. Il se connecte en SSH et
+envoie `deploy <sha>` ; côté serveur, `scripts/deploy_ci.sh` fait avancer
+`/app` jusqu'à ce commit (fast-forward uniquement), reconstruit les conteneurs
+et attend que `/health` réponde `ok` avec un index non vide.
+
+Le job reste **ignoré** tant que la variable `STAGING_DEPLOY_ENABLED` ne vaut
+pas `true`. Mise en place, une seule fois :
+
+**1. Clé dédiée** (sur votre machine) :
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/senstat_deploy -N "" -C senstat-ci-deploy
+```
+
+**2. Script et clé sur le serveur.** Le script est installé **hors de `/app`** :
+un push sur `stg` ne peut ainsi pas modifier ce qui s'exécute en root.
+Relancer `install` après chaque modification de `scripts/deploy_ci.sh`.
+
+```bash
+ssh root@65.109.143.85
+cd /app && git status   # doit être sur stg, sans modification locale
+install -m 755 /app/scripts/deploy_ci.sh /usr/local/bin/senstat-deploy
+```
+
+Puis ajouter **une ligne** à `/root/.ssh/authorized_keys` (la clé publique est
+dans `~/.ssh/senstat_deploy.pub`). Les options limitent cette clé au seul script :
+
+```
+command="/usr/local/bin/senstat-deploy",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAA... senstat-ci-deploy
+```
+
+**3. Empreinte du serveur.** Récupérer la clé d'hôte, puis vérifier que son
+empreinte correspond à celle affichée **sur le serveur** :
+
+```bash
+ssh-keyscan -t ed25519 65.109.143.85 > /tmp/staging_known_hosts
+ssh-keygen -lf /tmp/staging_known_hosts                       # sur votre machine
+ssh root@65.109.143.85 ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub   # doit être identique
+```
+
+**4. Secrets et activation** :
+
+```bash
+gh secret set STAGING_SSH_KEY < ~/.ssh/senstat_deploy
+gh secret set STAGING_KNOWN_HOSTS < /tmp/staging_known_hosts
+gh variable set STAGING_DEPLOY_ENABLED --body true
+```
+
+**Tester la clé avant d'activer** : `ssh -i ~/.ssh/senstat_deploy root@65.109.143.85 "deploy $(git rev-parse SenStat/stg)"`
+doit déployer ; toute autre commande doit répondre `usage: deploy <40-char commit sha>`.
+
+Le déploiement échoue (job rouge, conteneurs précédents inchangés si le build
+échoue) si `.env` ou `data/chroma` manquent, si `/app` n'est pas sur `stg` ou a
+divergé, ou si l'API n'est pas saine après 10 minutes. L'index Chroma n'est pas
+dans git : il se met toujours à jour à la main (`rsync`, voir README).
+
+---
+
 ## Ajouter un nom de domaine (optionnel)
 
 1. Achetez un domaine (ex: `senstat.sn`) et pointez son DNS vers votre IP Hetzner :
