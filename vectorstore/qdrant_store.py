@@ -1,12 +1,16 @@
 """
-Qdrant vector store with Voyage-3 dense + BM42 sparse hybrid search.
-Replaces the ChromaDB + BM25 sidecar with a single store and native RRF fusion.
+Qdrant vector store: dense + BM42 sparse hybrid search with native RRF fusion.
+Replaces the ChromaDB + BM25 sidecar with a single store.
+
+The dense embedder defaults to the same sentence-transformers model as ChromaStore
+(EMBEDDING_MODEL), so USE_QDRANT switches the storage, not the embedding. Set
+QDRANT_DENSE_EMBEDDER=voyage to use voyage-3-large instead (paid API).
 
 Usage:
     export QDRANT_URL=https://...qdrant.io   # or omit for local disk store
     export QDRANT_API_KEY=...
-    export VOYAGE_API_KEY=...
     export USE_QDRANT=true
+    export QDRANT_DENSE_EMBEDDER=voyage      # optional, needs VOYAGE_API_KEY
 """
 
 import hashlib
@@ -40,8 +44,14 @@ except ImportError:
     _VOYAGE_AVAILABLE = False
 
 COLLECTION = os.getenv("QDRANT_COLLECTION", "senstat")
-DENSE_DIM = 1024  # voyage-3-large output dimension
 SPARSE_MODEL = "Qdrant/bm42-all-minilm-l6-v2-attentions"
+VOYAGE_MODEL = "voyage-3-large"
+VOYAGE_DIM = 1024
+
+# Payload field recording which model embedded a point. Points written before it
+# existed carry none, and were all embedded with Voyage.
+EMBEDDER_KEY = "dense_embedder"
+LEGACY_EMBEDDER = VOYAGE_MODEL
 
 
 def _chunk_uuid(text: str) -> str:
@@ -63,12 +73,13 @@ def _build_filter(where: dict) -> Filter:
 def _point_to_chunk(point) -> dict:
     payload = dict(point.payload or {})
     text = payload.pop("text", "")
+    payload.pop(EMBEDDER_KEY, None)
     return {"text": text, "score": point.score, **payload}
 
 
 class QdrantStore:
     """
-    Hybrid Qdrant store: Voyage-3 dense vectors + BM42 sparse vectors.
+    Hybrid Qdrant store: dense vectors (local model or Voyage) + BM42 sparse vectors.
     Native RRF fusion replaces the BM25 sidecar in retrieval_agent.py.
     """
 
@@ -84,12 +95,28 @@ class QdrantStore:
             self._client = QdrantClient(path=path)
             logger.info(f"QdrantStore → local disk at {path}")
 
-        if not _VOYAGE_AVAILABLE:
-            raise ImportError("voyageai package required — pip install voyageai")
+        embedder = os.getenv("QDRANT_DENSE_EMBEDDER", "local")
+        self._voyage = None
+        self._local = None
+        if embedder == "voyage":
+            if not _VOYAGE_AVAILABLE:
+                raise ImportError("voyageai package required — pip install voyageai")
+            self._voyage = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
+            self._embedder_name = VOYAGE_MODEL
+            self._dense_dim = VOYAGE_DIM
+        elif embedder == "local":
+            from sentence_transformers import SentenceTransformer
 
-        self._voyage = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
+            self._embedder_name = os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-large")
+            self._local = SentenceTransformer(self._embedder_name)
+            self._dense_dim = self._local.get_sentence_embedding_dimension()
+        else:
+            raise ValueError(f"QDRANT_DENSE_EMBEDDER must be 'local' or 'voyage', got {embedder!r}")
+        logger.info(f"QdrantStore dense embedder: {self._embedder_name}")
+
         self._sparse = SparseTextEmbedding(SPARSE_MODEL)
         self._ensure_collection()
+        self._check_embedder()
 
     # ── Collection management ────────────────────────────────────────────────
 
@@ -98,18 +125,44 @@ class QdrantStore:
         if COLLECTION not in existing:
             self._client.create_collection(
                 collection_name=COLLECTION,
-                vectors_config={"dense": VectorParams(size=DENSE_DIM, distance=Distance.COSINE)},
+                vectors_config={
+                    "dense": VectorParams(size=self._dense_dim, distance=Distance.COSINE)
+                },
                 sparse_vectors_config={
                     "sparse": SparseVectorParams(index=SparseIndexParams(on_disk=False))
                 },
             )
             logger.info(f"Created Qdrant collection '{COLLECTION}'")
 
+    def _check_embedder(self):
+        """Refuse a collection embedded by another model.
+
+        Querying it would not fail: the dimensions can match (e5-large and
+        voyage-3-large are both 1024), so the results would look plausible and
+        be wrong. Checking at start-up also keeps add_chunks from mixing models.
+        """
+        points, _ = self._client.scroll(
+            collection_name=COLLECTION, limit=1, with_payload=[EMBEDDER_KEY]
+        )
+        if not points:
+            return
+        indexed_with = (points[0].payload or {}).get(EMBEDDER_KEY, LEGACY_EMBEDDER)
+        if indexed_with != self._embedder_name:
+            raise RuntimeError(
+                f"Qdrant collection '{COLLECTION}' was embedded with {indexed_with}, but the "
+                f"configured dense embedder is {self._embedder_name}. Re-index the "
+                f"collection, or set QDRANT_DENSE_EMBEDDER / EMBEDDING_MODEL to match."
+            )
+
     # ── Embeddings ───────────────────────────────────────────────────────────
 
     def _embed_dense(self, texts: list[str], input_type: str = "document") -> list[list[float]]:
-        result = self._voyage.embed(texts, model="voyage-3-large", input_type=input_type)
-        return result.embeddings
+        if self._voyage is not None:
+            result = self._voyage.embed(texts, model=VOYAGE_MODEL, input_type=input_type)
+            return result.embeddings
+        # Encoded exactly as ChromaStore's embedding function does (no e5
+        # "query:"/"passage:" prefixes), so both stores hold the same vectors.
+        return self._local.encode(texts).tolist()
 
     def _embed_sparse(self, texts: list[str]) -> list[SparseVector]:
         vecs = []
@@ -139,7 +192,7 @@ class QdrantStore:
 
             points = []
             for chunk, dv, sv in zip(batch, dense_vecs, sparse_vecs, strict=True):
-                payload = {k: v for k, v in chunk.items()}
+                payload = {**chunk, EMBEDDER_KEY: self._embedder_name}
                 points.append(
                     PointStruct(
                         id=_chunk_uuid(chunk["text"]),
