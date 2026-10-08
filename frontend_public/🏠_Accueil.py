@@ -20,7 +20,7 @@ sidebar_brand()
 
 lang = st.session_state.get("lang", "fr")
 
-# ── Hero ─────────────────────────────────────────────────────────────────────────
+# ── Hero ──────────────────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="hero-public">
     <div style="position:relative; z-index:1;">
@@ -31,7 +31,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── CTA ──────────────────────────────────────────────────────────────────────────
+# ── CTA ────────────────────────────────────────────────────────────────────────────────────
 c1, c2, c3 = st.columns([2, 2, 5])
 with c1:
     if st.button(t("home_cta_ask"), use_container_width=True, type="primary"):
@@ -42,21 +42,21 @@ with c2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Key facts ─────────────────────────────────────────────────────────────────────
+# ── Key facts ─────────────────────────────────────────────────────────────────────────────────
 section_lbl(t("home_key_facts"))
 
 FACTS = {
     "fr": [
-        ("Population", "17,7 M",  "habitants au Sénégal en 2023",               "RGPH-5, ANSD 2023"),
+        ("Population", "17,7 M",  "habitants au Sénégal en 2023",                  "RGPH-5, ANSD 2023"),
         ("Pauvreté",   "37,5 %",  "des Sénégalais vivent sous le seuil de pauvreté", "EHCVM 2021-2022, ANSD"),
-        ("Croissance", "+8,3 %",  "de croissance du PIB prévue en 2024",         "SES 2022-2023, ANSD"),
-        ("Chômage",    "23,2 %",  "taux de chômage au sens du BIT (2023)",       "RGPH-5, ANSD 2023"),
+        ("Croissance", "+8,3 %",  "de croissance du PIB prévue en 2024",             "FMI WEO 2025 · BDEF 2024, ANSD"),
+        ("IDH",        "0.530",   "Indice de développement humain (rang 169/193)",   "PNUD 2024"),
     ],
     "en": [
-        ("Population", "17.7 M",  "inhabitants in Senegal in 2023",              "RGPH-5, ANSD 2023"),
-        ("Poverty",    "37.5 %",  "of Senegalese live below the poverty line",   "EHCVM 2021-2022, ANSD"),
-        ("Growth",     "+8.3 %",  "projected GDP growth in 2024 (oil & gas)",    "SES 2022-2023, ANSD"),
-        ("Unemployment","23.2 %", "unemployment rate (ILO definition, 2023)",    "RGPH-5, ANSD 2023"),
+        ("Population", "17.7 M",  "inhabitants in Senegal in 2023",                 "RGPH-5, ANSD 2023"),
+        ("Poverty",    "37.5 %",  "of Senegalese live below the poverty line",      "EHCVM 2021-2022, ANSD"),
+        ("Growth",     "+8.3 %",  "projected GDP growth in 2024 (oil & gas)",       "IMF WEO 2025 · BDEF 2024, ANSD"),
+        ("HDI",        "0.530",   "Human Development Index (rank 169/193)",         "UNDP 2024"),
     ],
 }
 
@@ -67,7 +67,7 @@ for col, (topic, stat, desc, src) in zip([c1, c2, c3, c4], FACTS[lang]):
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
-# ── Themes ────────────────────────────────────────────────────────────────────────
+# ── Themes ──────────────────────────────────────────────────────────────────────────────────
 section_lbl(t("home_explore"))
 cols = st.columns(3, gap="small")
 for i, (emoji, name, desc, src, color) in enumerate(THEMES[lang]):
@@ -86,7 +86,7 @@ for i, (emoji, name, desc, src, color) in enumerate(THEMES[lang]):
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
-# ── How it works ──────────────────────────────────────────────────────────────────
+# ── How it works ────────────────────────────────────────────────────────────────────────────────
 section_lbl(t("home_how"))
 c1, c2, c3 = st.columns(3, gap="small")
 steps = [
@@ -106,7 +106,7 @@ for col, (icon, n, title, desc) in zip([c1, c2, c3], steps):
 </div>
 """, unsafe_allow_html=True)
 
-# ── Footer ────────────────────────────────────────────────────────────────────────
+# ── Footer ──────────────────────────────────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown(f"""
 <div style="text-align:center;color:#ccc;font-size:0.73rem;padding:8px 0 16px 0;">
