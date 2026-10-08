@@ -1,12 +1,15 @@
 import os
 
-os.environ.setdefault("ANTHROPIC_API_KEY", "sk-ant-api03-test-dummy-key-000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000AA")
+os.environ.setdefault(
+    "ANTHROPIC_API_KEY",
+    "sk-ant-api03-test-dummy-key-000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000AA",
+)
 os.environ.setdefault("CHROMA_PERSIST_DIR", "/tmp/test-chroma")
 os.environ.setdefault("EMBEDDING_MODEL", "intfloat/multilingual-e5-large")
 
 import pytest
-from agents.state import AgentState
 
+from agents.state import AgentState
 
 SAMPLE_CHUNKS = [
     {
@@ -53,7 +56,13 @@ COMPARE_OUTPUT = {
         },
     ],
     "gaps": [
-        {"metric": "taux de pauvreté", "absolute": 31.5, "relative": 1.54, "winner": "Milieu rural", "unit": "%"}
+        {
+            "metric": "taux de pauvreté",
+            "absolute": 31.5,
+            "relative": 1.54,
+            "winner": "Milieu rural",
+            "unit": "%",
+        }
     ],
     "insight": "Le milieu rural affiche un taux 2,5× supérieur au milieu urbain.",
 }

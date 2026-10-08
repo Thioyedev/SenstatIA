@@ -4,24 +4,25 @@ Fetches development indicators for Senegal.
 
 API docs: https://datahelpdesk.worldbank.org/knowledgebase/articles/889392
 """
+
 import httpx
 from loguru import logger
 
 INDICATOR_LABELS = {
-    "NY.GDP.MKTP.CD":      "PIB (USD courants)",
-    "NY.GDP.PCAP.CD":      "PIB par habitant (USD courants)",
-    "NY.GDP.MKTP.KD.ZG":   "Croissance du PIB réel (%)",
-    "SP.POP.TOTL":         "Population totale",
-    "SP.URB.TOTL.IN.ZS":   "Population urbaine (% du total)",
-    "SI.POV.NAHC":         "Taux de pauvreté national (%)",
-    "SI.POV.GINI":         "Coefficient de Gini",
-    "SL.UEM.TOTL.ZS":      "Chômage total (% population active)",
-    "SL.TLF.CACT.ZS":      "Taux d'activité (% population 15+)",
-    "SE.ADT.LITR.ZS":      "Taux d'alphabétisation adultes (%)",
-    "SE.PRM.NENR":         "Taux net scolarisation primaire (%)",
-    "SH.DYN.MORT":         "Mortalité infantile (pour 1000 naissances)",
-    "GC.DOD.TOTL.GD.ZS":   "Dette publique (% PIB)",
-    "BN.CAB.XOKA.GD.ZS":   "Solde compte courant (% PIB)",
+    "NY.GDP.MKTP.CD": "PIB (USD courants)",
+    "NY.GDP.PCAP.CD": "PIB par habitant (USD courants)",
+    "NY.GDP.MKTP.KD.ZG": "Croissance du PIB réel (%)",
+    "SP.POP.TOTL": "Population totale",
+    "SP.URB.TOTL.IN.ZS": "Population urbaine (% du total)",
+    "SI.POV.NAHC": "Taux de pauvreté national (%)",
+    "SI.POV.GINI": "Coefficient de Gini",
+    "SL.UEM.TOTL.ZS": "Chômage total (% population active)",
+    "SL.TLF.CACT.ZS": "Taux d'activité (% population 15+)",
+    "SE.ADT.LITR.ZS": "Taux d'alphabétisation adultes (%)",
+    "SE.PRM.NENR": "Taux net scolarisation primaire (%)",
+    "SH.DYN.MORT": "Mortalité infantile (pour 1000 naissances)",
+    "GC.DOD.TOTL.GD.ZS": "Dette publique (% PIB)",
+    "BN.CAB.XOKA.GD.ZS": "Solde compte courant (% PIB)",
 }
 
 
@@ -74,18 +75,20 @@ def fetch_worldbank(source: dict) -> list[dict]:
             + "\n".join(series_lines)
         )
 
-        chunks.append({
-            "text": text,
-            "source_id": source["id"],
-            "institution": source["institution"],
-            "report_name": source["name"],
-            "year": source.get("year"),
-            "page_number": 0,
-            "chunk_index": i,
-            "is_table": False,
-            "indicator_code": indicator,
-            "indicator_label": label,
-        })
+        chunks.append(
+            {
+                "text": text,
+                "source_id": source["id"],
+                "institution": source["institution"],
+                "report_name": source["name"],
+                "year": source.get("year"),
+                "page_number": 0,
+                "chunk_index": i,
+                "is_table": False,
+                "indicator_code": indicator,
+                "indicator_label": label,
+            }
+        )
         logger.debug(f"World Bank: fetched {indicator} — {len(series_lines)} years")
 
     logger.info(f"World Bank: {len(chunks)} indicator chunks for {country}")

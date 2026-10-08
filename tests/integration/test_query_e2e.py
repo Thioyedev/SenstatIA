@@ -5,6 +5,7 @@ Run with:
 
 Skipped automatically in CI (no API key).
 """
+
 import os
 
 import pytest
@@ -19,15 +20,25 @@ class TestQueryEndToEnd:
     @pytest.fixture(scope="class")
     def graph(self):
         from agents.graph import get_graph
+
         return get_graph()
 
     @pytest.fixture
     def empty_state(self):
         from agents.state import AgentState
+
         return AgentState(
-            query="", intent="", retrieved_chunks=[],
-            trend_output=None, compare_output=None, compute_output=None, viz_output=None,
-            synthesis="", citations=[], messages=[], conversation_history=[],
+            query="",
+            intent="",
+            retrieved_chunks=[],
+            trend_output=None,
+            compare_output=None,
+            compute_output=None,
+            viz_output=None,
+            synthesis="",
+            citations=[],
+            messages=[],
+            conversation_history=[],
         )
 
     def test_lookup_returns_answer_with_citations(self, graph, empty_state):

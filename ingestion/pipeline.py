@@ -16,11 +16,12 @@ Usage:
   python ingestion/pipeline.py --force            # re-ingest already-indexed
   python ingestion/pipeline.py --dry-run          # print plan, no writes
 """
+
 import argparse
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from loguru import logger
@@ -30,6 +31,7 @@ RAW_DIR = Path(os.getenv("DATA_RAW_DIR", "./data/raw"))
 
 
 # ── Sources registry ──────────────────────────────────────────────────────────
+
 
 def load_sources() -> list[dict]:
     with open(SOURCES_FILE) as f:
@@ -54,15 +56,16 @@ def mark_indexed(sources: list[dict], source_id: str, edition_label: str | None 
             # Mark parent indexed only when all editions are done
             if all(ed.get("status") == "indexed" for ed in s["editions"]):
                 s["status"] = "indexed"
-                s["indexed_at"] = datetime.now(timezone.utc).isoformat()
+                s["indexed_at"] = datetime.now(UTC).isoformat()
         else:
             s["status"] = "indexed"
-            s["indexed_at"] = datetime.now(timezone.utc).isoformat()
+            s["indexed_at"] = datetime.now(UTC).isoformat()
         break
     save_sources(sources)
 
 
 # ── Auto-download ─────────────────────────────────────────────────────────────
+
 
 def _download(url: str, dest: Path, filetype: str = "pdf"):
     """Download a file if it doesn't exist locally."""
@@ -72,12 +75,24 @@ def _download(url: str, dest: Path, filetype: str = "pdf"):
     logger.info(f"Downloading {dest.name} from {url[:80]}…")
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     import subprocess
+
     result = subprocess.run(
-        ["curl", "-L", "-s", "-o", str(dest),
-         "-A", "Mozilla/5.0 SenStat/1.0",
-         "--retry", "3", "--retry-delay", "2",
-         url],
-        capture_output=True, timeout=120,
+        [
+            "curl",
+            "-L",
+            "-s",
+            "-o",
+            str(dest),
+            "-A",
+            "Mozilla/5.0 SenStat/1.0",
+            "--retry",
+            "3",
+            "--retry-delay",
+            "2",
+            url,
+        ],
+        capture_output=True,
+        timeout=120,
     )
     if result.returncode != 0 or not dest.exists() or dest.stat().st_size < 1024:
         dest.unlink(missing_ok=True)
@@ -86,11 +101,14 @@ def _download(url: str, dest: Path, filetype: str = "pdf"):
         magic = dest.read_bytes()[:4]
         if magic != b"%PDF":
             dest.unlink()
-            raise RuntimeError(f"Downloaded file is not a PDF (got: {magic!r}) — URL may require browser auth or JS")
+            raise RuntimeError(
+                f"Downloaded file is not a PDF (got: {magic!r}) — URL may require browser auth or JS"
+            )
     logger.success(f"Downloaded: {dest.name} ({dest.stat().st_size // 1024} KB)")
 
 
 # ── XLSX pipeline ─────────────────────────────────────────────────────────────
+
 
 def _ingest_xlsx(source: dict, store) -> int:
     """Download XLSX, extract all sheets as text chunks."""
@@ -106,7 +124,7 @@ def _ingest_xlsx(source: dict, store) -> int:
 
     wb = openpyxl.load_workbook(dest, read_only=True, data_only=True)
     meta = _base_meta(source)
-    chunks = []
+    chunks: list[dict] = []
 
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
@@ -119,8 +137,9 @@ def _ingest_xlsx(source: dict, store) -> int:
             continue
 
         text = f"{source['name']} — Feuille: {sheet_name}\n" + "\n".join(rows[:300])
-        chunks.append({**meta, "text": text, "page_number": 0,
-                       "chunk_index": len(chunks), "is_table": True})
+        chunks.append(
+            {**meta, "text": text, "page_number": 0, "chunk_index": len(chunks), "is_table": True}
+        )
 
     store.add_chunks(chunks)
     logger.success(f"XLSX {source['id']}: {len(chunks)} sheet chunks indexed")
@@ -128,6 +147,7 @@ def _ingest_xlsx(source: dict, store) -> int:
 
 
 # ── PDF text pipeline ─────────────────────────────────────────────────────────
+
 
 def _ingest_pdf_text(source: dict, edition: dict | None, store) -> int:
     """Standard PDF pipeline: text extraction + chunking."""
@@ -159,13 +179,13 @@ def _ingest_pdf_text(source: dict, edition: dict | None, store) -> int:
     store.add_chunks(all_chunks)
     edition_tag = f"/{edition['label']}" if edition else ""
     logger.success(
-        f"{source['id']}{edition_tag}: "
-        f"{len(text_chunks)} text + {len(table_chunks)} table chunks"
+        f"{source['id']}{edition_tag}: {len(text_chunks)} text + {len(table_chunks)} table chunks"
     )
     return len(all_chunks)
 
 
 # ── PDF ColPali pipeline ──────────────────────────────────────────────────────
+
 
 def _ingest_pdf_colpali(source: dict, edition: dict | None) -> int:
     """Visual PDF pipeline: page images → ColQwen2 → Qdrant multivector."""
@@ -198,20 +218,25 @@ def _ingest_pdf_colpali(source: dict, edition: dict | None) -> int:
 
 # ── API pipelines ─────────────────────────────────────────────────────────────
 
+
 def _ingest_api(source: dict, store) -> int:
     pipeline = source["pipeline"]
 
     if pipeline == "api_imf":
         from ingestion.api_fetchers.imf_weo import fetch_imf_weo
+
         chunks = fetch_imf_weo(source)
     elif pipeline == "api_ilostat":
         from ingestion.api_fetchers.ilostat import fetch_ilostat
+
         chunks = fetch_ilostat(source)
     elif pipeline == "api_faostat":
         from ingestion.api_fetchers.faostat import fetch_faostat
+
         chunks = fetch_faostat(source)
     elif pipeline == "api_worldbank":
         from ingestion.api_fetchers.worldbank import fetch_worldbank
+
         chunks = fetch_worldbank(source)
     else:
         logger.warning(f"Unknown API pipeline: {pipeline}")
@@ -225,14 +250,13 @@ def _ingest_api(source: dict, store) -> int:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _base_meta(source: dict, edition: dict | None = None) -> dict:
     entry = edition or source
     return {
         "source_id": source["id"],
         "institution": source["institution"],
-        "report_name": (
-            f"{source['name']} {edition['label']}" if edition else source["name"]
-        ),
+        "report_name": (f"{source['name']} {edition['label']}" if edition else source["name"]),
         "year": entry.get("year") or source.get("year"),
         "url": source.get("url", ""),
         "edition": edition["label"] if edition else None,
@@ -242,8 +266,10 @@ def _base_meta(source: dict, edition: dict | None = None) -> dict:
 def _get_store():
     if os.getenv("USE_QDRANT", "false").lower() == "true":
         from vectorstore.qdrant_store import QdrantStore
+
         return QdrantStore()
     from vectorstore.chroma_store import ChromaStore
+
     return ChromaStore()
 
 
@@ -255,6 +281,7 @@ def _should_skip(source: dict, edition: dict | None, force: bool) -> bool:
 
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
+
 
 def run_ingestion(
     source_id: str | None = None,
@@ -292,7 +319,11 @@ def run_ingestion(
                 logger.info(f"[dry-run] Would ingest {source['id']} via {pipeline}")
                 continue
             try:
-                n = _ingest_xlsx(source, store) if pipeline == "xlsx" else _ingest_api(source, store)
+                n = (
+                    _ingest_xlsx(source, store)
+                    if pipeline == "xlsx"
+                    else _ingest_api(source, store)
+                )
             except Exception as e:
                 logger.error(f"SKIP {source['id']}: {e}")
                 continue
@@ -307,11 +338,16 @@ def run_ingestion(
                     logger.info(f"Skip {source['id']}/{edition['label']} (indexed)")
                     continue
                 if dry_run:
-                    logger.info(f"[dry-run] Would ingest {source['id']}/{edition['label']} via {pipeline}")
+                    logger.info(
+                        f"[dry-run] Would ingest {source['id']}/{edition['label']} via {pipeline}"
+                    )
                     continue
                 try:
-                    n = (_ingest_pdf_colpali(source, edition) if pipeline == "pdf_colpali"
-                         else _ingest_pdf_text(source, edition, store))
+                    n = (
+                        _ingest_pdf_colpali(source, edition)
+                        if pipeline == "pdf_colpali"
+                        else _ingest_pdf_text(source, edition, store)
+                    )
                 except Exception as e:
                     logger.error(f"SKIP {source['id']}/{edition['label']}: {e}")
                     continue
@@ -328,8 +364,11 @@ def run_ingestion(
                 logger.info(f"[dry-run] Would ingest {source['id']} via {pipeline}")
                 continue
             try:
-                n = (_ingest_pdf_colpali(source, None) if pipeline == "pdf_colpali"
-                     else _ingest_pdf_text(source, None, store))
+                n = (
+                    _ingest_pdf_colpali(source, None)
+                    if pipeline == "pdf_colpali"
+                    else _ingest_pdf_text(source, None, store)
+                )
             except Exception as e:
                 logger.error(f"SKIP {source['id']}: {e}")
                 continue

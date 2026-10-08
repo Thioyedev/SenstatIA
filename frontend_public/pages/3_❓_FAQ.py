@@ -1,13 +1,16 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import streamlit as st
+
+from frontend_public.i18n import FAQ_ITEMS, t
 from frontend_public.style_public import inject_css, sidebar_brand
-from frontend_public.i18n import t, FAQ_ITEMS
 
 st.set_page_config(
     page_title="FAQ — SenStat",
@@ -29,7 +32,8 @@ for question, answer in FAQ_ITEMS[lang]:
         st.markdown(answer)
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
-st.markdown(f"""
+st.markdown(
+    f"""
 <div style="background:white;border-radius:14px;padding:24px 28px;
             box-shadow:0 2px 8px rgba(0,0,0,0.07);text-align:center;">
     <div style="font-size:1.5rem;margin-bottom:8px;">💬</div>
@@ -40,7 +44,9 @@ st.markdown(f"""
         {t("faq_cta_desc")}
     </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 st.markdown("<br>", unsafe_allow_html=True)
 if st.button(t("faq_cta_btn"), type="primary"):

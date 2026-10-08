@@ -5,6 +5,7 @@ Fetches agricultural production and food balance data for Senegal.
 API docs: https://fenixservices.fao.org/faostat/api/v1
 Domains: QCL (production), TCL (trade), FBS (food balance), PP (prices)
 """
+
 import httpx
 from loguru import logger
 
@@ -12,15 +13,15 @@ DOMAIN_LABELS = {
     "QCL": "Production agricole (cultures et bétail)",
     "TCL": "Commerce alimentaire (importations et exportations)",
     "FBS": "Bilan alimentaire (disponibilité par habitant)",
-    "PP":  "Prix agricoles",
+    "PP": "Prix agricoles",
 }
 
 # Key items to fetch per domain (FAO item codes)
 DOMAIN_ITEMS = {
     "QCL": ["27", "56", "79", "101", "103", "116", "135", "156", "176", "191", "197", "217"],
-    "TCL": [],   # fetch all — filter to top items by value
+    "TCL": [],  # fetch all — filter to top items by value
     "FBS": ["2901"],  # aggregate food supply
-    "PP":  ["15", "27", "56", "79"],
+    "PP": ["15", "27", "56", "79"],
 }
 
 
@@ -79,17 +80,19 @@ def fetch_faostat(source: dict) -> list[dict]:
             f"Données récentes:\n" + "\n".join(lines)
         )
 
-        chunks.append({
-            "text": text,
-            "source_id": source["id"],
-            "institution": source["institution"],
-            "report_name": source["name"],
-            "year": source.get("year"),
-            "page_number": 0,
-            "chunk_index": i,
-            "is_table": True,
-            "fao_domain": domain,
-        })
+        chunks.append(
+            {
+                "text": text,
+                "source_id": source["id"],
+                "institution": source["institution"],
+                "report_name": source["name"],
+                "year": source.get("year"),
+                "page_number": 0,
+                "chunk_index": i,
+                "is_table": True,
+                "fao_domain": domain,
+            }
+        )
         logger.debug(f"FAOSTAT: domain {domain} — {len(lines)} records")
 
     logger.info(f"FAOSTAT: {len(chunks)} domain chunks fetched for Senegal")

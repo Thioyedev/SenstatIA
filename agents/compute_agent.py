@@ -12,11 +12,21 @@ from agents.state import AgentState
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 _ALLOWED_IMPORTS = frozenset({"math", "statistics"})
-_FORBIDDEN_BUILTINS = frozenset({
-    "__import__", "eval", "exec", "open", "compile",
-    "globals", "locals", "vars", "__builtins__",
-    "breakpoint", "input",
-})
+_FORBIDDEN_BUILTINS = frozenset(
+    {
+        "__import__",
+        "eval",
+        "exec",
+        "open",
+        "compile",
+        "globals",
+        "locals",
+        "vars",
+        "__builtins__",
+        "breakpoint",
+        "input",
+    }
+)
 
 
 def _validate_ast(code: str) -> tuple[bool, str]:
@@ -33,9 +43,12 @@ def _validate_ast(code: str) -> tuple[bool, str]:
                 return False, f"forbidden import: {blocked[0]}"
         if isinstance(node, ast.Name) and node.id in _FORBIDDEN_BUILTINS:
             return False, f"forbidden builtin: {node.id}"
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id in _FORBIDDEN_BUILTINS:
-                return False, f"forbidden call: {node.func.id}"
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id in _FORBIDDEN_BUILTINS
+        ):
+            return False, f"forbidden call: {node.func.id}"
     return True, ""
 
 
@@ -96,7 +109,7 @@ print(json.dumps({{"result": result}}))
 
 def _format_chunks(chunks: list[dict]) -> str:
     return "\n\n".join(
-        f"[{i}] {c.get('institution','?')} — {c.get('report_name','?')}, p.{c.get('page_number','?')}\n{c['text']}"
+        f"[{i}] {c.get('institution', '?')} — {c.get('report_name', '?')}, p.{c.get('page_number', '?')}\n{c['text']}"
         for i, c in enumerate(chunks, 1)
     )
 
@@ -118,9 +131,15 @@ def compute_agent(state: AgentState) -> dict:
         code_resp = _client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=500,
-            messages=[{"role": "user", "content": _CODE_PROMPT.format(
-                query=query, chunks=_format_chunks(chunks),
-            )}],
+            messages=[
+                {
+                    "role": "user",
+                    "content": _CODE_PROMPT.format(
+                        query=query,
+                        chunks=_format_chunks(chunks),
+                    ),
+                }
+            ],
         )
         code = _strip_fences(code_resp.content[0].text)
         sandbox = _run_sandbox(code)
@@ -131,9 +150,16 @@ def compute_agent(state: AgentState) -> dict:
         interp_resp = _client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=200,
-            messages=[{"role": "user", "content": _INTERPRET_PROMPT.format(
-                query=query, code=code, result=json.dumps(result, ensure_ascii=False),
-            )}],
+            messages=[
+                {
+                    "role": "user",
+                    "content": _INTERPRET_PROMPT.format(
+                        query=query,
+                        code=code,
+                        result=json.dumps(result, ensure_ascii=False),
+                    ),
+                }
+            ],
         )
         output = {
             "code": code,

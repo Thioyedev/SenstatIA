@@ -18,101 +18,124 @@ COLPALI_TOP_K = int(os.getenv("COLPALI_TOP_K", "3"))
 # Falls back to None (full corpus) when query spans multiple domains.
 _SOURCE_RULES: list[tuple[re.Pattern, list[str]]] = [
     # Poverty & living conditions
-    (re.compile(
-        r"\b(?:pauv\w*|ehcvm|esps|seuil de pauv|inégali\w*|consommation|indigent|"
-        r"poor|poverty|gini|profondeur|sévérité|conditions de vie|ménage)",
-        re.IGNORECASE),
-     ["ehcvm_2021", "ansd_esps_2021"]),
-
+    (
+        re.compile(
+            r"\b(?:pauv\w*|ehcvm|esps|seuil de pauv|inégali\w*|consommation|indigent|"
+            r"poor|poverty|gini|profondeur|sévérité|conditions de vie|ménage)",
+            re.IGNORECASE,
+        ),
+        ["ehcvm_2021", "ansd_esps_2021"],
+    ),
     # Population & demographics
-    (re.compile(
-        r"\b(?:population|rgph|démograph\w*|naissance|mortalité|"
-        r"fécondité|densité|habitant\w*|recensement|ménage\w*)",
-        re.IGNORECASE),
-     ["rgph5_2023"]),
-
+    (
+        re.compile(
+            r"\b(?:population|rgph|démograph\w*|naissance|mortalité|"
+            r"fécondité|densité|habitant\w*|recensement|ménage\w*)",
+            re.IGNORECASE,
+        ),
+        ["rgph5_2023"],
+    ),
     # Employment & labour market
-    (re.compile(
-        r"\b(?:emploi|chômage|chôm\w*|actif|inactif|travail|sous-emploi|"
-        r"enes|ilostat|informel|activ\w* économ|employment|unemployment|labour|labor)",
-        re.IGNORECASE),
-     ["rgph5_economie", "ses_2022_2023", "ansd_enes", "ilo_ilostat_sen"]),
-
+    (
+        re.compile(
+            r"\b(?:emploi|chômage|chôm\w*|actif|inactif|travail|sous-emploi|"
+            r"enes|ilostat|informel|activ\w* économ|employment|unemployment|labour|labor)",
+            re.IGNORECASE,
+        ),
+        ["rgph5_economie", "ses_2022_2023", "ansd_enes", "ilo_ilostat_sen"],
+    ),
     # Quarterly GDP & conjuncture
-    (re.compile(
-        r"\b(?:neer|pib trimestriel|croissance trimestrielle|conjoncture trimestrielle|"
-        r"t[1-4][- ]20\d\d|trimestre)",
-        re.IGNORECASE),
-     ["ansd_neer", "dpee_sef"]),
-
+    (
+        re.compile(
+            r"\b(?:neer|pib trimestriel|croissance trimestrielle|conjoncture trimestrielle|"
+            r"t[1-4][- ]20\d\d|trimestre)",
+            re.IGNORECASE,
+        ),
+        ["ansd_neer", "dpee_sef"],
+    ),
     # Macroeconomy & GDP (annual)
-    (re.compile(
-        r"\b(?:pib|croissance économique|secteur\w*|agriculture|industri\w*|"
-        r"valeur ajoutée|économi\w*|gdp|growth|macro)",
-        re.IGNORECASE),
-     ["rgph5_economie", "ses_2022_2023", "dpee_sef", "imf_weo_sen", "ansd_bdef_2024"]),
-
+    (
+        re.compile(
+            r"\b(?:pib|croissance économique|secteur\w*|agriculture|industri\w*|"
+            r"valeur ajoutée|économi\w*|gdp|growth|macro)",
+            re.IGNORECASE,
+        ),
+        ["rgph5_economie", "ses_2022_2023", "dpee_sef", "imf_weo_sen", "ansd_bdef_2024"],
+    ),
     # Public finances & budget
-    (re.compile(
-        r"\b(?:budget|fiscal|recette\w*|dépense\w*|déficit|loi de finances|"
-        r"exécution budgétaire|ref |sef |dgb|finances publiques)",
-        re.IGNORECASE),
-     ["dpee_ref", "dpee_sef", "dgb_budget"]),
-
+    (
+        re.compile(
+            r"\b(?:budget|fiscal|recette\w*|dépense\w*|déficit|loi de finances|"
+            r"exécution budgétaire|ref |sef |dgb|finances publiques)",
+            re.IGNORECASE,
+        ),
+        ["dpee_ref", "dpee_sef", "dgb_budget"],
+    ),
     # Public debt
-    (re.compile(
-        r"\b(?:dette publique|dette extérieure|dette intérieure|service de la dette|"
-        r"dgtcp|cour des comptes|soutenabilité|dsa|debt)",
-        re.IGNORECASE),
-     ["dgtcp_dette", "courdescomptes_audit_2024", "imf_country_reports", "imf_weo_sen"]),
-
+    (
+        re.compile(
+            r"\b(?:dette publique|dette extérieure|dette intérieure|service de la dette|"
+            r"dgtcp|cour des comptes|soutenabilité|dsa|debt)",
+            re.IGNORECASE,
+        ),
+        ["dgtcp_dette", "courdescomptes_audit_2024", "imf_country_reports", "imf_weo_sen"],
+    ),
     # Agriculture & food
-    (re.compile(
-        r"\b(?:agricult\w*|récolte|culture|céréale|mil|arachide|riz|bétail|"
-        r"élevage|faostat|dapsa|eaa|production agricole|alimentaire)",
-        re.IGNORECASE),
-     ["dapsa_eaa_2022", "fao_faostat_sen", "ses_2022_2023"]),
-
+    (
+        re.compile(
+            r"\b(?:agricult\w*|récolte|culture|céréale|mil|arachide|riz|bétail|"
+            r"élevage|faostat|dapsa|eaa|production agricole|alimentaire)",
+            re.IGNORECASE,
+        ),
+        ["dapsa_eaa_2022", "fao_faostat_sen", "ses_2022_2023"],
+    ),
     # Health & demography
-    (re.compile(
-        r"\b(?:santé|mortalité infantile|fertilité|nutrition|malnutrition|"
-        r"eds|vaccin|paludisme|maternelle|vih|aids)",
-        re.IGNORECASE),
-     ["eds_2023", "ses_2022_2023"]),
-
+    (
+        re.compile(
+            r"\b(?:santé|mortalité infantile|fertilité|nutrition|malnutrition|"
+            r"eds|vaccin|paludisme|maternelle|vih|aids)",
+            re.IGNORECASE,
+        ),
+        ["eds_2023", "ses_2022_2023"],
+    ),
     # Education
-    (re.compile(
-        r"\b(?:éducation|scolarisation|alphabétis\w*|école|primaire scolaire|"
-        r"secondaire scolaire|université|enseignement)",
-        re.IGNORECASE),
-     ["ses_2022_2023", "undp_hdi_mpi"]),
-
+    (
+        re.compile(
+            r"\b(?:éducation|scolarisation|alphabétis\w*|école|primaire scolaire|"
+            r"secondaire scolaire|université|enseignement)",
+            re.IGNORECASE,
+        ),
+        ["ses_2022_2023", "undp_hdi_mpi"],
+    ),
     # Human development & multidimensional poverty
-    (re.compile(
-        r"\b(?:idh|ipm|développement humain|pauvreté multidimensionnelle|"
-        r"hdi|mpi|indice de développement)",
-        re.IGNORECASE),
-     ["undp_hdi_mpi"]),
-
+    (
+        re.compile(
+            r"\b(?:idh|ipm|développement humain|pauvreté multidimensionnelle|"
+            r"hdi|mpi|indice de développement)",
+            re.IGNORECASE,
+        ),
+        ["undp_hdi_mpi"],
+    ),
     # Telecom & digital
-    (re.compile(
-        r"\b(?:télécom|mobile|internet|numérique|artp|pénétration|"
-        r"opérateur|broadband|haut débit)",
-        re.IGNORECASE),
-     ["artp_telecom"]),
-
+    (
+        re.compile(
+            r"\b(?:télécom|mobile|internet|numérique|artp|pénétration|"
+            r"opérateur|broadband|haut débit)",
+            re.IGNORECASE,
+        ),
+        ["artp_telecom"],
+    ),
     # Monetary & banking (BCEAO)
-    (re.compile(
-        r"\b(?:monnaie|inflation|franc cfa|bceao|uemoa|taux directeur|"
-        r"balance des paiements|réserves)",
-        re.IGNORECASE),
-     ["bceao_rapport_annuel", "imf_weo_sen"]),
-
+    (
+        re.compile(
+            r"\b(?:monnaie|inflation|franc cfa|bceao|uemoa|taux directeur|"
+            r"balance des paiements|réserves)",
+            re.IGNORECASE,
+        ),
+        ["bceao_rapport_annuel", "imf_weo_sen"],
+    ),
     # Education only via SES for explicit terms
-    (re.compile(
-        r"\b(?:électrif\w*|accès à l'électricité)",
-        re.IGNORECASE),
-     ["ses_2022_2023"]),
+    (re.compile(r"\b(?:électrif\w*|accès à l'électricité)", re.IGNORECASE), ["ses_2022_2023"]),
 ]
 
 TOP_K = 8
@@ -147,6 +170,7 @@ def _get_store():
     if _store is None:
         if USE_QDRANT:
             from vectorstore.qdrant_store import QdrantStore
+
             _store = QdrantStore()
             logger.info("Retrieval backend: Qdrant (dense+sparse hybrid)")
         else:
@@ -159,6 +183,7 @@ def _get_colpali():
     global _colpali_indexer
     if _colpali_indexer is None:
         from ingestion.colpali_indexer import ColPaliIndexer
+
         _colpali_indexer = ColPaliIndexer()
     return _colpali_indexer
 
@@ -168,6 +193,7 @@ def _rerank(query: str, docs: list[dict]) -> list[dict]:
     if USE_COHERE_RERANK:
         if _cohere_client is None:
             import cohere
+
             _cohere_client = cohere.ClientV2(api_key=os.getenv("COHERE_API_KEY"))
         response = _cohere_client.rerank(
             model="rerank-v3.5",
@@ -182,7 +208,7 @@ def _rerank(query: str, docs: list[dict]) -> list[dict]:
         _cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
     pairs = [(query, d["text"]) for d in docs]
     scores = _cross_encoder.predict(pairs)
-    scored = sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)
+    scored = sorted(zip(scores, docs, strict=True), key=lambda x: x[0], reverse=True)
 
     # Keep only chunks above CE_THRESHOLD; always keep at least 1
     above = [(s, d) for s, d in scored if s >= CE_THRESHOLD]
@@ -210,6 +236,7 @@ def _reciprocal_rank_fusion(rankings: list[list[dict]], k: int = 60) -> list[dic
 
 # ── ColPali retrieval ─────────────────────────────────────────────────────────
 
+
 def _colpali_retrieval(query: str) -> list[dict]:
     """Query the ColPali visual index and return page-level chunks."""
     try:
@@ -221,6 +248,7 @@ def _colpali_retrieval(query: str) -> list[dict]:
 
 
 # ── Main retrieval agent ──────────────────────────────────────────────────────
+
 
 def retrieval_agent(state: AgentState) -> dict:
     query = state["query"]
@@ -237,6 +265,7 @@ def retrieval_agent(state: AgentState) -> dict:
         fused = text_candidates
     else:
         from rank_bm25 import BM25Okapi
+
         dense = store.search(query, n_results=20, where=src_filter)
         if len(dense) < TOP_K and src_filter is not None:
             logger.debug(f"Source filter → {len(dense)} results, falling back to full corpus")
@@ -247,8 +276,10 @@ def retrieval_agent(state: AgentState) -> dict:
             tokenized = [doc.split() for doc in corpus]
             bm25 = BM25Okapi(tokenized)
             bm25_scores = bm25.get_scores(query.split())
-            sparse = [dense[i] for i in sorted(range(len(dense)),
-                                               key=lambda x: bm25_scores[x], reverse=True)]
+            sparse = [
+                dense[i]
+                for i in sorted(range(len(dense)), key=lambda x: bm25_scores[x], reverse=True)
+            ]
         else:
             sparse = []
         fused = _reciprocal_rank_fusion([dense, sparse])[:20]

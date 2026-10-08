@@ -1,11 +1,13 @@
 import asyncio
 import re
+
 from fastapi import APIRouter, HTTPException
 from loguru import logger
-from api.schemas import QueryRequest, QueryResponse, Citation
-from agents.graph import get_graph
 
-_INLINE_CITE_RE = re.compile(r'\s*\[[^\]]*p\.\s*\d+\]')
+from agents.graph import get_graph
+from api.schemas import Citation, QueryRequest, QueryResponse
+
+_INLINE_CITE_RE = re.compile(r"\s*\[[^\]]*p\.\s*\d+\]")
 
 router = APIRouter()
 
@@ -26,8 +28,7 @@ async def query(request: QueryRequest):
             "citations": [],
             "messages": [],
             "conversation_history": [
-                {"role": m.role, "content": m.content}
-                for m in request.messages
+                {"role": m.role, "content": m.content} for m in request.messages
             ],
         }
         result = await asyncio.to_thread(graph.invoke, state)
@@ -41,4 +42,4 @@ async def query(request: QueryRequest):
         )
     except Exception as e:
         logger.error(f"Query failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

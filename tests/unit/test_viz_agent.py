@@ -15,16 +15,27 @@ class TestVizAgent:
         assert fig["data"][0]["type"] == "scatter"
 
     def test_compare_chart_for_compare_viz(self, base_state, compare_output):
-        result = viz_agent({**base_state, "intent": "compare_viz", "compare_output": compare_output})
+        result = viz_agent(
+            {**base_state, "intent": "compare_viz", "compare_output": compare_output}
+        )
         assert result["viz_output"]["chart_type"] == "compare"
 
     def test_compare_is_bar_chart(self, base_state, compare_output):
-        result = viz_agent({**base_state, "intent": "compare_viz", "compare_output": compare_output})
+        result = viz_agent(
+            {**base_state, "intent": "compare_viz", "compare_output": compare_output}
+        )
         fig = json.loads(result["viz_output"]["fig_json"])
         assert fig["data"][0]["type"] == "bar"
 
     def test_compare_takes_priority_over_trend(self, base_state, trend_output, compare_output):
-        result = viz_agent({**base_state, "intent": "compare_viz", "trend_output": trend_output, "compare_output": compare_output})
+        result = viz_agent(
+            {
+                **base_state,
+                "intent": "compare_viz",
+                "trend_output": trend_output,
+                "compare_output": compare_output,
+            }
+        )
         assert result["viz_output"]["chart_type"] == "compare"
 
     def test_returns_none_when_no_data(self, base_state):

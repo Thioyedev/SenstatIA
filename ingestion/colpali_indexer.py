@@ -15,9 +15,9 @@ Usage:
     indexer = ColPaliIndexer()
     indexer.index_pdf("data/raw/ansd_rgph5.pdf", source_id="rgph5", institution="ANSD")
 """
+
 import os
 from pathlib import Path
-from typing import Optional
 
 import torch
 from loguru import logger
@@ -28,18 +28,16 @@ from qdrant_client.models import (
     Distance,
     FieldCondition,
     Filter,
-    Fusion,
-    FusionQuery,
     MatchValue,
-    MultiVectorConfig,
     MultiVectorComparator,
+    MultiVectorConfig,
     PointStruct,
-    Prefetch,
     VectorParams,
 )
 
 try:
     from colpali_engine.models import ColQwen2, ColQwen2Processor
+
     _COLPALI_AVAILABLE = True
 except ImportError:
     _COLPALI_AVAILABLE = False
@@ -47,7 +45,7 @@ except ImportError:
 COLPALI_COLLECTION = os.getenv("QDRANT_COLPALI_COLLECTION", "senstat_colpali")
 COLPALI_MODEL = "vidore/colqwen2-v1.0"
 PATCH_DIM = 128  # ColQwen2 patch embedding dimension
-DPI = 150        # Resolution for PDF → image conversion (balance quality vs speed)
+DPI = 150  # Resolution for PDF → image conversion (balance quality vs speed)
 
 
 class ColPaliIndexer:
@@ -60,11 +58,15 @@ class ColPaliIndexer:
 
     def __init__(self):
         if not _COLPALI_AVAILABLE:
-            raise ImportError(
-                "colpali-engine not installed — run: pip install colpali-engine"
-            )
+            raise ImportError("colpali-engine not installed — run: pip install colpali-engine")
 
-        self._device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+        self._device = (
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
         logger.info(f"ColPali device: {self._device}")
 
         self._model = ColQwen2.from_pretrained(
@@ -127,7 +129,7 @@ class ColPaliIndexer:
         source_id: str,
         institution: str,
         report_name: str = "",
-        year: Optional[int] = None,
+        year: int | None = None,
         batch_size: int = 8,
     ):
         """
@@ -144,25 +146,27 @@ class ColPaliIndexer:
         logger.info(f"  → {total} pages")
 
         for start in range(0, total, batch_size):
-            batch_imgs = images[start: start + batch_size]
+            batch_imgs = images[start : start + batch_size]
             page_vecs = self._embed_pages(batch_imgs)
 
             points = []
             for i, vecs in enumerate(page_vecs):
                 page_num = start + i + 1
                 point_id = _stable_id(source_id, page_num)
-                points.append(PointStruct(
-                    id=point_id,
-                    vector={"colpali": vecs},
-                    payload={
-                        "source_id": source_id,
-                        "institution": institution,
-                        "report_name": report_name or path.stem,
-                        "page_number": page_num,
-                        "year": year,
-                        "pdf_path": str(path),
-                    },
-                ))
+                points.append(
+                    PointStruct(
+                        id=point_id,
+                        vector={"colpali": vecs},
+                        payload={
+                            "source_id": source_id,
+                            "institution": institution,
+                            "report_name": report_name or path.stem,
+                            "page_number": page_num,
+                            "year": year,
+                            "pdf_path": str(path),
+                        },
+                    )
+                )
 
             self._client.upsert(collection_name=COLPALI_COLLECTION, points=points)
             logger.info(f"  Indexed pages {start + 1}–{start + len(batch_imgs)}/{total}")
@@ -175,7 +179,7 @@ class ColPaliIndexer:
         self,
         query: str,
         n_results: int = 5,
-        source_id: Optional[str] = None,
+        source_id: str | None = None,
     ) -> list[dict]:
         """
         Retrieve pages most relevant to query using MaxSim late-interaction.
@@ -184,7 +188,8 @@ class ColPaliIndexer:
         query_vecs = self._embed_query(query)
         qdrant_filter = (
             Filter(must=[FieldCondition(key="source_id", match=MatchValue(value=source_id))])
-            if source_id else None
+            if source_id
+            else None
         )
 
         results = self._client.query_points(
@@ -199,20 +204,24 @@ class ColPaliIndexer:
         chunks = []
         for r in results.points:
             payload = dict(r.payload or {})
-            chunks.append({
-                "text": f"[Visual page — {payload.get('report_name', '')} p.{payload.get('page_number', '?')}]",
-                "score": r.score,
-                **payload,
-            })
+            chunks.append(
+                {
+                    "text": f"[Visual page — {payload.get('report_name', '')} p.{payload.get('page_number', '?')}]",
+                    "score": r.score,
+                    **payload,
+                }
+            )
 
         return chunks
 
 
 # ── Utilities ────────────────────────────────────────────────────────────────
 
+
 def _stable_id(source_id: str, page_num: int) -> str:
     """UUID stable across re-ingestion runs."""
     import hashlib
     import uuid
+
     digest = hashlib.sha256(f"{source_id}:{page_num}".encode()).hexdigest()[:32]
     return str(uuid.UUID(digest))

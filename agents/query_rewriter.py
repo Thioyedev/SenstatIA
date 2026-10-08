@@ -1,15 +1,35 @@
 import os
+
 import anthropic
 from loguru import logger
+
 from agents.state import AgentState
 
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 _FOLLOWUP_TRIGGERS = (
-    "et ", "et pour", "et à", "et en", "et le", "et la", "et les",
-    "qu'en est-il", "ça", "cela", "idem", "pareil", "même chose",
-    "et chez", "et dans", "et au", "et aux", "mais ", "mais pour",
-    "c'est quoi", "c'est combien", "combien pour",
+    "et ",
+    "et pour",
+    "et à",
+    "et en",
+    "et le",
+    "et la",
+    "et les",
+    "qu'en est-il",
+    "ça",
+    "cela",
+    "idem",
+    "pareil",
+    "même chose",
+    "et chez",
+    "et dans",
+    "et au",
+    "et aux",
+    "mais ",
+    "mais pour",
+    "c'est quoi",
+    "c'est combien",
+    "combien pour",
 )
 
 _PROMPT = """Voici une conversation sur les statistiques du Sénégal.
@@ -61,10 +81,15 @@ def query_rewriter(state: AgentState) -> dict:
         resp = _client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=150,
-            messages=[{"role": "user", "content": _PROMPT.format(
-                history=history_text,
-                query=query,
-            )}],
+            messages=[
+                {
+                    "role": "user",
+                    "content": _PROMPT.format(
+                        history=history_text,
+                        query=query,
+                    ),
+                }
+            ],
         )
         rewritten = resp.content[0].text.strip().strip('"').strip("'")
         if rewritten and rewritten != query:

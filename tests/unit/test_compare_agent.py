@@ -3,14 +3,30 @@ from unittest.mock import MagicMock, patch
 
 from agents.compare_agent import compare_agent
 
-VALID_JSON = json.dumps({
-    "entities": [
-        {"name": "Urbain", "values": [{"metric": "pauvreté", "value": 20.5, "unit": "%", "year": 2021}]},
-        {"name": "Rural", "values": [{"metric": "pauvreté", "value": 52.0, "unit": "%", "year": 2021}]},
-    ],
-    "gaps": [{"metric": "pauvreté", "absolute": 31.5, "relative": 1.54, "winner": "Rural", "unit": "%"}],
-    "insight": "Rural 2,5× plus pauvre.",
-})
+VALID_JSON = json.dumps(
+    {
+        "entities": [
+            {
+                "name": "Urbain",
+                "values": [{"metric": "pauvreté", "value": 20.5, "unit": "%", "year": 2021}],
+            },
+            {
+                "name": "Rural",
+                "values": [{"metric": "pauvreté", "value": 52.0, "unit": "%", "year": 2021}],
+            },
+        ],
+        "gaps": [
+            {
+                "metric": "pauvreté",
+                "absolute": 31.5,
+                "relative": 1.54,
+                "winner": "Rural",
+                "unit": "%",
+            }
+        ],
+        "insight": "Rural 2,5× plus pauvre.",
+    }
+)
 EMPTY_JSON = json.dumps({"entities": [], "gaps": [], "insight": None})
 
 

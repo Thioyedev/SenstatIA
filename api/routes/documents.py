@@ -14,9 +14,11 @@ def _get_store():
     if _store is None:
         if os.getenv("USE_QDRANT", "false").lower() == "true":
             from vectorstore.qdrant_store import QdrantStore
+
             _store = QdrantStore()
         else:
             from vectorstore.chroma_store import ChromaStore
+
             _store = ChromaStore()
     return _store
 
@@ -32,13 +34,15 @@ async def list_documents():
         except Exception:
             count = 0
 
-        docs.append(DocumentInfo(
-            source_id=source["id"],
-            institution=source.get("institution", ""),
-            report_name=source.get("name", ""),
-            year=source.get("year"),
-            topics=source.get("topics", []),
-            url=source.get("url", ""),
-            chunk_count=count,
-        ))
+        docs.append(
+            DocumentInfo(
+                source_id=source["id"],
+                institution=source.get("institution", ""),
+                report_name=source.get("name", ""),
+                year=source.get("year"),
+                topics=source.get("topics", []),
+                url=source.get("url", ""),
+                chunk_count=count,
+            )
+        )
     return docs

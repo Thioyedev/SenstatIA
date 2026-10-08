@@ -60,6 +60,7 @@ def text_of(length, char="a"):
 
 # ── OCR trigger threshold ─────────────────────────────────────────────────────
 
+
 def test_rich_page_never_triggers_ocr(monkeypatch):
     fake_pdf(monkeypatch, [text_of(OCR_MIN_CHARS + 50)])
     calls = fake_ocr(monkeypatch, text_of(9999))
@@ -89,6 +90,7 @@ def test_page_below_threshold_triggers_ocr(monkeypatch):
 
 
 # ── The regression this module exists for ─────────────────────────────────────
+
 
 def test_ocr_discarded_when_it_recovers_less(monkeypatch):
     """Chart/table pages: Tesseract returns less than pdfplumber.
@@ -129,6 +131,7 @@ def test_ocr_kept_when_it_recovers_more(monkeypatch):
 
 # ── Empty pages ───────────────────────────────────────────────────────────────
 
+
 def test_blank_page_with_nothing_to_recover_stays_empty(monkeypatch):
     fake_pdf(monkeypatch, [""])
     fake_ocr(monkeypatch, "")
@@ -161,6 +164,7 @@ def test_whitespace_only_page_is_treated_as_empty(monkeypatch):
 
 
 # ── Result shape ──────────────────────────────────────────────────────────────
+
 
 def test_char_count_matches_retained_text(monkeypatch):
     fake_pdf(monkeypatch, [text_of(10), text_of(300)])
@@ -197,6 +201,7 @@ def test_filename_is_reported(monkeypatch):
 
 # ── Toolchain availability ────────────────────────────────────────────────────
 
+
 def test_missing_tesseract_is_reported_not_swallowed(monkeypatch):
     import pytesseract
 
@@ -230,7 +235,8 @@ def test_ocr_page_skips_render_when_toolchain_missing(monkeypatch):
 
     monkeypatch.setattr(pdf_extractor, "_ocr_available", lambda: False)
     monkeypatch.setattr(
-        pdf2image, "convert_from_path",
+        pdf2image,
+        "convert_from_path",
         lambda *a, **k: pytest.fail("must not render without a toolchain"),
     )
 
@@ -257,7 +263,8 @@ def test_failing_ocr_leaves_pdfplumber_text_intact(monkeypatch):
     fake_pdf(monkeypatch, [original])
     monkeypatch.setattr(pdf_extractor, "_ocr_available", lambda: True)
     monkeypatch.setattr(
-        pdf2image, "convert_from_path",
+        pdf2image,
+        "convert_from_path",
         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("render failed")),
     )
 
@@ -268,6 +275,7 @@ def test_failing_ocr_leaves_pdfplumber_text_intact(monkeypatch):
 
 
 # ── Metadata propagation ──────────────────────────────────────────────────────
+
 
 def test_ocr_flag_reaches_chunk_metadata():
     pages = [

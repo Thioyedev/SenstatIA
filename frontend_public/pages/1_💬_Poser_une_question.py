@@ -1,17 +1,21 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import os
 import uuid
+from datetime import datetime
+
 import httpx
 import streamlit as st
-from datetime import datetime
-from frontend_public.style_public import inject_css, sidebar_brand, section_lbl
-from frontend_public.i18n import t, QUICK
+
+from frontend_public.i18n import QUICK, t
+from frontend_public.style_public import inject_css, section_lbl, sidebar_brand
 
 st.set_page_config(
     page_title="Question — SenStat",
@@ -23,26 +27,30 @@ inject_css()
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+
 # ── Conversation state ──────────────────────────────────────────────────────────
 def new_conversation():
     cid = str(uuid.uuid4())
     st.session_state.pub_conversations[cid] = {
-        "title":     t("new_conv").replace("✏️  ", ""),
-        "messages":  [],
+        "title": t("new_conv").replace("✏️  ", ""),
+        "messages": [],
         "citations": [],
         "timestamp": datetime.now(),
     }
     st.session_state.pub_current_id = cid
 
+
 if "pub_conversations" not in st.session_state:
     st.session_state.pub_conversations = {}
     new_conversation()
 
-if "pub_current_id" not in st.session_state or \
-        st.session_state.pub_current_id not in st.session_state.pub_conversations:
+if (
+    "pub_current_id" not in st.session_state
+    or st.session_state.pub_current_id not in st.session_state.pub_conversations
+):
     new_conversation()
 
-cid  = st.session_state.pub_current_id
+cid = st.session_state.pub_current_id
 conv = st.session_state.pub_conversations[cid]
 
 # ── Sidebar (toggle is inside sidebar_brand) ────────────────────────────────────
@@ -57,7 +65,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-today      = datetime.now().date()
+today = datetime.now().date()
 today_convs, older_convs = [], []
 for c_id, c in reversed(list(st.session_state.pub_conversations.items())):
     if not c["messages"]:
@@ -67,15 +75,20 @@ for c_id, c in reversed(list(st.session_state.pub_conversations.items())):
     else:
         older_convs.append((c_id, c))
 
+
 def render_conv_list(items):
     for c_id, c in items:
-        label  = c["title"][:38] + "…" if len(c["title"]) > 38 else c["title"]
+        label = c["title"][:38] + "…" if len(c["title"]) > 38 else c["title"]
         active = c_id == st.session_state.pub_current_id
-        if st.sidebar.button(label, key=f"pub_conv_{c_id}",
-                             use_container_width=True,
-                             type="primary" if active else "secondary"):
+        if st.sidebar.button(
+            label,
+            key=f"pub_conv_{c_id}",
+            use_container_width=True,
+            type="primary" if active else "secondary",
+        ):
             st.session_state.pub_current_id = c_id
             st.rerun()
+
 
 if today_convs:
     st.sidebar.markdown(
@@ -92,7 +105,8 @@ if older_convs:
     render_conv_list(older_convs)
 
 # ── Page banner ──────────────────────────────────────────────────────────────────
-st.markdown(f"""
+st.markdown(
+    f"""
 <div class="page-banner">
     <div class="page-banner-icon">💬</div>
     <div>
@@ -100,10 +114,12 @@ st.markdown(f"""
         <div class="page-banner-sub">{t("q_banner_sub")}</div>
     </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ── Layout ───────────────────────────────────────────────────────────────────────
-lang     = st.session_state.get("lang", "fr")
+lang = st.session_state.get("lang", "fr")
 has_conv = bool(conv["messages"])
 
 theme_query = st.session_state.pop("theme_query", None)
@@ -119,6 +135,7 @@ if not has_conv:
                 st.session_state["pub_prefill"] = q
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
+
 def _dedup_citations(cites: list) -> list:
     seen, out = set(), []
     for c in cites:
@@ -128,22 +145,25 @@ def _dedup_citations(cites: list) -> list:
             out.append(c)
     return out
 
+
 def _render_pills(cites: list):
     pills = "".join(
-        f'<span class="source-pill">📎 {c.get("institution","?")} — '
-        f'{c.get("report_name","?")}</span>'
+        f'<span class="source-pill">📎 {c.get("institution", "?")} — '
+        f"{c.get('report_name', '?')}</span>"
         for c in _dedup_citations(cites)
     )
     if pills:
-        st.markdown(f'<div style="margin-top:10px">{pills}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div style="margin-top:10px">{pills}</div>', unsafe_allow_html=True)
+
 
 def _render_viz(viz: dict | None):
     if not viz or not viz.get("fig_json"):
         return
     import plotly.io as pio
+
     fig = pio.from_json(viz["fig_json"])
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
 
 for msg in conv["messages"]:
     avatar = "🧑" if msg["role"] == "user" else "🇸🇳"
@@ -155,7 +175,7 @@ for msg in conv["messages"]:
                 _render_pills(msg["citations"])
 
 prefill = st.session_state.pop("pub_prefill", None)
-prompt  = st.chat_input(t("q_chat_input")) or prefill
+prompt = st.chat_input(t("q_chat_input")) or prefill
 
 if prompt:
     if not conv["messages"]:
@@ -174,31 +194,33 @@ if prompt:
                     for m in conv["messages"]
                     if m["role"] in ("user", "assistant")
                 ]
-                resp = httpx.post(f"{API_URL}/query",
-                                  json={"query": prompt, "messages": history},
-                                  timeout=90.0)
+                resp = httpx.post(
+                    f"{API_URL}/query", json={"query": prompt, "messages": history}, timeout=90.0
+                )
                 resp.raise_for_status()
-                data      = resp.json()
-                answer    = data["answer"]
+                data = resp.json()
+                answer = data["answer"]
                 new_cites = data.get("citations", [])
-                new_viz   = data.get("viz")
+                new_viz = data.get("viz")
             except httpx.HTTPStatusError as e:
-                answer    = f"{t('error')}\n\n`HTTP {e.response.status_code}: {e.response.text[:200]}`"
+                answer = f"{t('error')}\n\n`HTTP {e.response.status_code}: {e.response.text[:200]}`"
                 new_cites = []
-                new_viz   = None
+                new_viz = None
             except Exception as e:
-                answer    = f"{t('error')}\n\n`{type(e).__name__}: {str(e)[:200]}`"
+                answer = f"{t('error')}\n\n`{type(e).__name__}: {str(e)[:200]}`"
                 new_cites = []
-                new_viz   = None
+                new_viz = None
 
         _render_viz(new_viz)
         st.markdown(answer)
         _render_pills(new_cites)
 
-    conv["messages"].append({
-        "role":      "assistant",
-        "content":   answer,
-        "citations": new_cites,
-        "viz":       new_viz,
-    })
+    conv["messages"].append(
+        {
+            "role": "assistant",
+            "content": answer,
+            "citations": new_cites,
+            "viz": new_viz,
+        }
+    )
     st.rerun()

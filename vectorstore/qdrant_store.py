@@ -8,10 +8,10 @@ Usage:
     export VOYAGE_API_KEY=...
     export USE_QDRANT=true
 """
+
 import hashlib
 import os
 import uuid
-from typing import Optional
 
 from fastembed import SparseTextEmbedding
 from loguru import logger
@@ -24,8 +24,6 @@ from qdrant_client.models import (
     FusionQuery,
     MatchAny,
     MatchValue,
-    MultiVectorConfig,
-    MultiVectorComparator,
     PointStruct,
     Prefetch,
     SparseIndexParams,
@@ -36,6 +34,7 @@ from qdrant_client.models import (
 
 try:
     import voyageai
+
     _VOYAGE_AVAILABLE = True
 except ImportError:
     _VOYAGE_AVAILABLE = False
@@ -99,13 +98,9 @@ class QdrantStore:
         if COLLECTION not in existing:
             self._client.create_collection(
                 collection_name=COLLECTION,
-                vectors_config={
-                    "dense": VectorParams(size=DENSE_DIM, distance=Distance.COSINE)
-                },
+                vectors_config={"dense": VectorParams(size=DENSE_DIM, distance=Distance.COSINE)},
                 sparse_vectors_config={
-                    "sparse": SparseVectorParams(
-                        index=SparseIndexParams(on_disk=False)
-                    )
+                    "sparse": SparseVectorParams(index=SparseIndexParams(on_disk=False))
                 },
             )
             logger.info(f"Created Qdrant collection '{COLLECTION}'")
@@ -119,10 +114,12 @@ class QdrantStore:
     def _embed_sparse(self, texts: list[str]) -> list[SparseVector]:
         vecs = []
         for sv in self._sparse.embed(texts):
-            vecs.append(SparseVector(
-                indices=sv.indices.tolist(),
-                values=sv.values.tolist(),
-            ))
+            vecs.append(
+                SparseVector(
+                    indices=sv.indices.tolist(),
+                    values=sv.values.tolist(),
+                )
+            )
         return vecs
 
     def _query_sparse(self, query: str) -> SparseVector:
@@ -134,27 +131,29 @@ class QdrantStore:
     def add_chunks(self, chunks: list[dict], batch_size: int = 64):
         """Upsert chunks with dense + sparse vectors. Idempotent via UUID."""
         for start in range(0, len(chunks), batch_size):
-            batch = chunks[start: start + batch_size]
+            batch = chunks[start : start + batch_size]
             texts = [c["text"] for c in batch]
 
             dense_vecs = self._embed_dense(texts)
             sparse_vecs = self._embed_sparse(texts)
 
             points = []
-            for chunk, dv, sv in zip(batch, dense_vecs, sparse_vecs):
+            for chunk, dv, sv in zip(batch, dense_vecs, sparse_vecs, strict=True):
                 payload = {k: v for k, v in chunk.items()}
-                points.append(PointStruct(
-                    id=_chunk_uuid(chunk["text"]),
-                    vector={"dense": dv, "sparse": sv},
-                    payload=payload,
-                ))
+                points.append(
+                    PointStruct(
+                        id=_chunk_uuid(chunk["text"]),
+                        vector={"dense": dv, "sparse": sv},
+                        payload=payload,
+                    )
+                )
 
             self._client.upsert(collection_name=COLLECTION, points=points)
             logger.debug(f"Upserted {len(points)} chunks to Qdrant")
 
     # ── Retrieval ────────────────────────────────────────────────────────────
 
-    def search(self, query: str, n_results: int = 20, where: Optional[dict] = None) -> list[dict]:
+    def search(self, query: str, n_results: int = 20, where: dict | None = None) -> list[dict]:
         """
         Hybrid search: dense prefetch + sparse prefetch → native RRF fusion.
         Replaces the manual BM25 + RRF in retrieval_agent.py.
@@ -190,7 +189,7 @@ class QdrantStore:
         logger.debug(f"Qdrant hybrid search → {len(chunks)} results")
         return chunks
 
-    def count(self, where: Optional[dict] = None) -> int:
+    def count(self, where: dict | None = None) -> int:
         qdrant_filter = _build_filter(where) if where else None
         result = self._client.count(collection_name=COLLECTION, count_filter=qdrant_filter)
         return result.count

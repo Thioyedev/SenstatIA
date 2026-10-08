@@ -1,9 +1,9 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-SENEGAL_GREEN  = "#00853F"
+SENEGAL_GREEN = "#00853F"
 SENEGAL_YELLOW = "#FDEF42"
-SENEGAL_RED    = "#E31B23"
+SENEGAL_RED = "#E31B23"
 
 CSS = """
 <style>
@@ -480,21 +480,32 @@ def sidebar_brand():
     if "lang" not in st.session_state:
         st.session_state.lang = "fr"
 
-    st.sidebar.markdown("""
+    st.sidebar.markdown(
+        """
 <div style="padding:16px 12px 8px 12px; display:flex; align-items:center; gap:10px;">
     <span style="font-size:1.3rem;">📊</span>
     <span style="font-size:1rem; font-weight:700; color:white; letter-spacing:0.2px;">SenStat</span>
 </div>
 <hr style="border-color:rgba(255,255,255,0.08); margin:0 12px 6px 12px;">
-""", unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
 
     lc1, lc2 = st.sidebar.columns(2)
-    if lc1.button("🇫🇷 FR", use_container_width=True, key="sb_lang_fr",
-                  type="primary" if st.session_state.lang == "fr" else "secondary"):
+    if lc1.button(
+        "🇫🇷 FR",
+        use_container_width=True,
+        key="sb_lang_fr",
+        type="primary" if st.session_state.lang == "fr" else "secondary",
+    ):
         st.session_state.lang = "fr"
         st.rerun()
-    if lc2.button("🇬🇧 EN", use_container_width=True, key="sb_lang_en",
-                  type="primary" if st.session_state.lang == "en" else "secondary"):
+    if lc2.button(
+        "🇬🇧 EN",
+        use_container_width=True,
+        key="sb_lang_en",
+        type="primary" if st.session_state.lang == "en" else "secondary",
+    ):
         st.session_state.lang = "en"
         st.rerun()
     st.sidebar.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
@@ -512,21 +523,27 @@ def section_label(text: str):
 
 
 def empty_state(icon: str, message: str):
-    st.markdown(f"""
+    st.markdown(
+        f"""
 <div class="empty-state">
     <div class="icon">{icon}</div>
     <div class="msg">{message}</div>
 </div>
-""", unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
 
 
 def metric_card(icon: str, value, label: str, sub: str = ""):
     sub_html = f'<div class="sub">{sub}</div>' if sub else ""
-    st.markdown(f"""
+    st.markdown(
+        f"""
 <div class="metric-card">
     <div class="icon">{icon}</div>
     <div class="value">{value}</div>
     <div class="label">{label}</div>
     {sub_html}
 </div>
-""", unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )

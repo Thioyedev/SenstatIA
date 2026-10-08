@@ -62,6 +62,8 @@ addopts = "-v --tb=short"
 
 [tool.ruff]
 line-length = 100
+# Code blocks in docs are illustrative and hand-aligned; keep the linter off them.
+extend-exclude = ["*.md"]
 target-version = "py311"
 
 [tool.ruff.lint]
@@ -70,6 +72,12 @@ ignore = ["E501", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["F401", "F811", "S101"]
+# Entry points call load_dotenv() / sys.path.insert() before importing project
+# modules, which read their configuration at import time.
+"api/main.py" = ["E402"]
+"scripts/*" = ["E402"]
+"frontend/*" = ["E402"]
+"frontend_public/*" = ["E402"]
 
 [tool.mypy]
 python_version = "3.11"

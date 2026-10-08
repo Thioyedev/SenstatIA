@@ -98,7 +98,8 @@ def mixed_pdf(tmp_path_factory):
     native = doc.new_page(width=595, height=842)
     native.insert_text((72, 120), NATIVE_MARKER, fontsize=13)
     native.insert_text(
-        (72, 150), "La croissance reelle atteint 4,3 pour cent selon la DPEE.",
+        (72, 150),
+        "La croissance reelle atteint 4,3 pour cent selon la DPEE.",
         fontsize=13,
     )
     # Push the native page well past OCR_MIN_CHARS so it cannot trip the fallback
@@ -131,6 +132,7 @@ def page(extracted, number):
 
 # ── Fixture integrity ─────────────────────────────────────────────────────────
 
+
 def test_scanned_page_has_no_text_layer(mixed_pdf):
     """Guards the fixture itself.
 
@@ -150,6 +152,7 @@ def test_native_page_has_a_text_layer(mixed_pdf):
 
 
 # ── The real chain ────────────────────────────────────────────────────────────
+
 
 def test_scanned_page_is_recovered_by_tesseract(extracted):
     scanned = page(extracted, SCANNED_PAGE)
@@ -202,6 +205,7 @@ def test_char_counts_match_retained_text(extracted):
 
 
 # ── Through to chunk metadata ─────────────────────────────────────────────────
+
 
 def test_ocr_provenance_survives_chunking(extracted):
     chunks = chunk_pages(extracted["pages"], {"institution": "ANSD", "year": 2023})

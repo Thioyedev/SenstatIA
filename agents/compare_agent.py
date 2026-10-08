@@ -1,7 +1,9 @@
 import json
 import os
+
 import anthropic
 from loguru import logger
+
 from agents.state import AgentState
 
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -62,7 +64,7 @@ Si vraiment aucune comparaison n'est possible :
 
 def _format_chunks(chunks: list[dict]) -> str:
     return "\n\n".join(
-        f"[{i}] {c.get('institution','?')} — {c.get('report_name','?')}, p.{c.get('page_number','?')}\n{c['text']}"
+        f"[{i}] {c.get('institution', '?')} — {c.get('report_name', '?')}, p.{c.get('page_number', '?')}\n{c['text']}"
         for i, c in enumerate(chunks, 1)
     )
 
@@ -84,10 +86,15 @@ def compare_agent(state: AgentState) -> dict:
         resp = _client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=2000,
-            messages=[{"role": "user", "content": _PROMPT.format(
-                query=state["query"],
-                chunks=_format_chunks(chunks),
-            )}],
+            messages=[
+                {
+                    "role": "user",
+                    "content": _PROMPT.format(
+                        query=state["query"],
+                        chunks=_format_chunks(chunks),
+                    ),
+                }
+            ],
         )
         raw = resp.content[0].text
         logger.debug(f"Compare raw: {raw[:300]}")

@@ -1,7 +1,9 @@
 import json
 import os
+
 import anthropic
 from loguru import logger
+
 from agents.state import AgentState
 
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -40,7 +42,7 @@ def _resolve_intent(intents: list[str]) -> str:
     has_viz = "viz" in s
     # viz is a modifier — the data path determines the chart type
     if "trend" in s and "compare" in s:
-        return "mixed"            # parallel trend+compare (no viz for now)
+        return "mixed"  # parallel trend+compare (no viz for now)
     if "compare" in s:
         return "compare_viz" if has_viz else "compare"
     if "trend" in s:
@@ -48,7 +50,7 @@ def _resolve_intent(intents: list[str]) -> str:
     if "compute" in s:
         return "compute"
     if has_viz:
-        return "viz"              # fallback: trend path
+        return "viz"  # fallback: trend path
     return "lookup"
 
 
@@ -64,9 +66,9 @@ def router_agent(state: AgentState) -> dict:
         lines = raw.split("\n")
         raw = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
     try:
-        parsed  = json.loads(raw)
+        parsed = json.loads(raw)
         intents = parsed.get("intents", ["lookup"])
-        intent  = _resolve_intent(intents)
+        intent = _resolve_intent(intents)
     except (json.JSONDecodeError, Exception):
         intent = "lookup"
 

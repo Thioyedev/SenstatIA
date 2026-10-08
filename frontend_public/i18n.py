@@ -13,105 +13,96 @@ _T = {
     # ──────────────────────────────────────────────────────────────────────────
     "fr": {
         # Common
-        "new_conv":      "✏️  Nouvelle conversation",
-        "today":         "Aujourd'hui",
-        "previous":      "Précédentes",
-        "verified":      "✅ Données vérifiées",
+        "new_conv": "✏️  Nouvelle conversation",
+        "today": "Aujourd'hui",
+        "previous": "Précédentes",
+        "verified": "✅ Données vérifiées",
         "verified_desc": "Toutes les réponses proviennent des rapports officiels de l'ANSD, FMI, Banque Mondiale, ARTP, DGTCP et PNUD.",
-        "sources":       "📎 Sources utilisées",
-        "spinner":       "Recherche dans les rapports officiels…",
-        "error":         "⚠️ Le service est momentanément indisponible. Réessayez dans quelques instants.",
-
+        "sources": "📎 Sources utilisées",
+        "spinner": "Recherche dans les rapports officiels…",
+        "error": "⚠️ Le service est momentanément indisponible. Réessayez dans quelques instants.",
         # Home
-        "home_eyebrow":    "🇸🇳 Données officielles du Sénégal",
-        "home_title":      "Les chiffres officiels,<br>à portée de main.",
-        "home_sub":        "Posez vos questions sur la population, l'économie, la dette publique, les télécoms ou l'agriculture au Sénégal — et obtenez une réponse tirée directement des rapports officiels, avec la source exacte.",
-        "home_cta_ask":    "💬 Poser une question",
+        "home_eyebrow": "🇸🇳 Données officielles du Sénégal",
+        "home_title": "Les chiffres officiels,<br>à portée de main.",
+        "home_sub": "Posez vos questions sur la population, l'économie, la dette publique, les télécoms ou l'agriculture au Sénégal — et obtenez une réponse tirée directement des rapports officiels, avec la source exacte.",
+        "home_cta_ask": "💬 Poser une question",
         "home_cta_themes": "📋 Parcourir les thèmes",
-        "home_key_facts":  "Le Sénégal en chiffres clés",
-        "home_explore":    "Explorer par thème",
-        "home_how":        "Comment ça marche ?",
-        "home_step1_title":"Posez votre question",
+        "home_key_facts": "Le Sénégal en chiffres clés",
+        "home_explore": "Explorer par thème",
+        "home_how": "Comment ça marche ?",
+        "home_step1_title": "Posez votre question",
         "home_step1_desc": "En français ou en anglais, librement. Pas besoin de connaître le nom du rapport.",
-        "home_step2_title":"Nous cherchons dans les sources officielles",
+        "home_step2_title": "Nous cherchons dans les sources officielles",
         "home_step2_desc": "Notre système consulte les rapports ANSD, FMI, Banque Mondiale, ARTP, DGTCP et PNUD — pas Internet.",
-        "home_step3_title":"Vous obtenez la réponse avec sa source",
+        "home_step3_title": "Vous obtenez la réponse avec sa source",
         "home_step3_desc": "Chaque chiffre est accompagné du rapport, de l'institution et de la page d'origine.",
-        "home_step1_n":    "ÉTAPE 1",
-        "home_step2_n":    "ÉTAPE 2",
-        "home_step3_n":    "ÉTAPE 3",
-        "home_footer":     "Données issues de l'ANSD, FMI, Banque Mondiale, ARTP, DGTCP, Cour des Comptes et PNUD · SenStat ne remplace pas les rapports officiels",
-        "explore_btn":     "Explorer",
-
+        "home_step1_n": "ÉTAPE 1",
+        "home_step2_n": "ÉTAPE 2",
+        "home_step3_n": "ÉTAPE 3",
+        "home_footer": "Données issues de l'ANSD, FMI, Banque Mondiale, ARTP, DGTCP, Cour des Comptes et PNUD · SenStat ne remplace pas les rapports officiels",
+        "explore_btn": "Explorer",
         # Question page
-        "q_banner_title":  "Posez votre question",
-        "q_banner_sub":    "Réponses issues exclusivement des rapports officiels · ANSD · FMI · Banque Mondiale · ARTP · DGTCP · Cour des Comptes · PNUD · DAPSA",
-        "q_quick_label":   "Questions fréquentes — cliquez pour une réponse rapide",
-        "q_chat_input":    "Ex : Quel est le taux de pauvreté au Sénégal ?",
-
+        "q_banner_title": "Posez votre question",
+        "q_banner_sub": "Réponses issues exclusivement des rapports officiels · ANSD · FMI · Banque Mondiale · ARTP · DGTCP · Cour des Comptes · PNUD · DAPSA",
+        "q_quick_label": "Questions fréquentes — cliquez pour une réponse rapide",
+        "q_chat_input": "Ex : Quel est le taux de pauvreté au Sénégal ?",
         # Themes page
-        "themes_title":    "📋 Explorez par thème",
-        "themes_caption":  "Choisissez un thème pour voir les questions les plus posées et obtenir une réponse immédiate.",
-        "themes_footer":   "Vous ne trouvez pas votre thème ? Posez directement votre question dans l'onglet 💬",
-
+        "themes_title": "📋 Explorez par thème",
+        "themes_caption": "Choisissez un thème pour voir les questions les plus posées et obtenir une réponse immédiate.",
+        "themes_footer": "Vous ne trouvez pas votre thème ? Posez directement votre question dans l'onglet 💬",
         # FAQ page
-        "faq_title":       "❓ Questions fréquentes",
-        "faq_caption":     "Tout ce que vous devez savoir sur SenStat et les données utilisées.",
-        "faq_cta_title":   "Vous avez une autre question ?",
-        "faq_cta_desc":    "Posez-la directement à notre assistant — il consultera les rapports officiels pour vous répondre.",
-        "faq_cta_btn":     "💬 Poser ma question",
+        "faq_title": "❓ Questions fréquentes",
+        "faq_caption": "Tout ce que vous devez savoir sur SenStat et les données utilisées.",
+        "faq_cta_title": "Vous avez une autre question ?",
+        "faq_cta_desc": "Posez-la directement à notre assistant — il consultera les rapports officiels pour vous répondre.",
+        "faq_cta_btn": "💬 Poser ma question",
     },
-
     # ──────────────────────────────────────────────────────────────────────────
     "en": {
         # Common
-        "new_conv":      "✏️  New conversation",
-        "today":         "Today",
-        "previous":      "Earlier",
-        "verified":      "✅ Verified data",
+        "new_conv": "✏️  New conversation",
+        "today": "Today",
+        "previous": "Earlier",
+        "verified": "✅ Verified data",
         "verified_desc": "All answers come exclusively from official ANSD, IMF, World Bank, ARTP, DGTCP and UNDP reports.",
-        "sources":       "📎 Sources used",
-        "spinner":       "Searching official reports…",
-        "error":         "⚠️ The service is temporarily unavailable. Please try again in a moment.",
-
+        "sources": "📎 Sources used",
+        "spinner": "Searching official reports…",
+        "error": "⚠️ The service is temporarily unavailable. Please try again in a moment.",
         # Home
-        "home_eyebrow":    "🇸🇳 Official data from Senegal",
-        "home_title":      "Official figures,<br>at your fingertips.",
-        "home_sub":        "Ask questions about Senegal's population, economy, public debt, telecoms or agriculture — and get an answer drawn directly from official reports, with the exact source.",
-        "home_cta_ask":    "💬 Ask a question",
+        "home_eyebrow": "🇸🇳 Official data from Senegal",
+        "home_title": "Official figures,<br>at your fingertips.",
+        "home_sub": "Ask questions about Senegal's population, economy, public debt, telecoms or agriculture — and get an answer drawn directly from official reports, with the exact source.",
+        "home_cta_ask": "💬 Ask a question",
         "home_cta_themes": "📋 Browse themes",
-        "home_key_facts":  "Senegal in key figures",
-        "home_explore":    "Explore by theme",
-        "home_how":        "How it works",
-        "home_step1_title":"Ask your question",
+        "home_key_facts": "Senegal in key figures",
+        "home_explore": "Explore by theme",
+        "home_how": "How it works",
+        "home_step1_title": "Ask your question",
         "home_step1_desc": "In French or English, freely. No need to know the report name.",
-        "home_step2_title":"We search official sources",
+        "home_step2_title": "We search official sources",
         "home_step2_desc": "Our system reads ANSD, IMF, World Bank, ARTP, DGTCP and UNDP reports — not the internet.",
-        "home_step3_title":"You get the answer with its source",
+        "home_step3_title": "You get the answer with its source",
         "home_step3_desc": "Every figure comes with the report name, institution, and exact page number.",
-        "home_step1_n":    "STEP 1",
-        "home_step2_n":    "STEP 2",
-        "home_step3_n":    "STEP 3",
-        "home_footer":     "Data from ANSD, IMF, World Bank, ARTP, DGTCP, Cour des Comptes and UNDP · SenStat does not replace official reports",
-        "explore_btn":     "Explore",
-
+        "home_step1_n": "STEP 1",
+        "home_step2_n": "STEP 2",
+        "home_step3_n": "STEP 3",
+        "home_footer": "Data from ANSD, IMF, World Bank, ARTP, DGTCP, Cour des Comptes and UNDP · SenStat does not replace official reports",
+        "explore_btn": "Explore",
         # Question page
-        "q_banner_title":  "Ask your question",
-        "q_banner_sub":    "Answers sourced exclusively from official reports · ANSD · IMF · World Bank · ARTP · DGTCP · Cour des Comptes · UNDP · DAPSA",
-        "q_quick_label":   "Frequent questions — click for a quick answer",
-        "q_chat_input":    "E.g.: What is the poverty rate in Senegal?",
-
+        "q_banner_title": "Ask your question",
+        "q_banner_sub": "Answers sourced exclusively from official reports · ANSD · IMF · World Bank · ARTP · DGTCP · Cour des Comptes · UNDP · DAPSA",
+        "q_quick_label": "Frequent questions — click for a quick answer",
+        "q_chat_input": "E.g.: What is the poverty rate in Senegal?",
         # Themes page
-        "themes_title":    "📋 Explore by theme",
-        "themes_caption":  "Choose a theme to see the most common questions and get an immediate answer.",
-        "themes_footer":   "Can't find your theme? Ask your question directly in the 💬 tab",
-
+        "themes_title": "📋 Explore by theme",
+        "themes_caption": "Choose a theme to see the most common questions and get an immediate answer.",
+        "themes_footer": "Can't find your theme? Ask your question directly in the 💬 tab",
         # FAQ page
-        "faq_title":       "❓ Frequently Asked Questions",
-        "faq_caption":     "Everything you need to know about SenStat and the data used.",
-        "faq_cta_title":   "Have another question?",
-        "faq_cta_desc":    "Ask it directly to our assistant — it will search the official reports for you.",
-        "faq_cta_btn":     "💬 Ask my question",
+        "faq_title": "❓ Frequently Asked Questions",
+        "faq_caption": "Everything you need to know about SenStat and the data used.",
+        "faq_cta_title": "Have another question?",
+        "faq_cta_desc": "Ask it directly to our assistant — it will search the official reports for you.",
+        "faq_cta_btn": "💬 Ask my question",
     },
 }
 
@@ -138,26 +129,134 @@ QUICK = {
 # ── Themes ─────────────────────────────────────────────────────────────────────
 THEMES = {
     "fr": [
-        ("👥", "Population",           "Démographie, régions, ménages, migrations",               "RGPH-5 2023 — ANSD",                  "#1565C0"),
-        ("💰", "Pauvreté",             "Inégalités, conditions de vie, seuil de pauvreté",        "PNUD HDI/MPI · Banque Mondiale",      "#E65100"),
-        ("📊", "Économie",             "PIB, croissance, conjoncture trimestrielle, secteurs",    "BDEF 2024 · WEO FMI · Banque Mondiale", "#00853F"),
-        ("💼", "Emploi",               "Chômage, activité, marché du travail, secteur informel", "ENES · RGPH-5 Économie — ANSD",        "#1976D2"),
-        ("🏥", "Santé",                "Mortalité, nutrition, espérance de vie, vaccination",    "Banque Mondiale · PNUD",              "#C62828"),
-        ("🎓", "Éducation",            "Scolarisation, alphabétisation, parité, université",     "Banque Mondiale · PNUD",              "#6A1B9A"),
-        ("🌾", "Agriculture",          "Céréales, arachide, riz, élevage, sécurité alimentaire", "EAA 2022-2023 — DAPSA",               "#558B2F"),
-        ("📡", "Télécoms & Numérique", "Mobile, internet, opérateurs, pénétration, données",     "ARTP 2024",                           "#00838F"),
-        ("🏦", "Finances & Dette",     "Dette publique, budget, audit, exécution budgétaire",    "DGTCP · Cour des Comptes",            "#5D4037"),
+        (
+            "👥",
+            "Population",
+            "Démographie, régions, ménages, migrations",
+            "RGPH-5 2023 — ANSD",
+            "#1565C0",
+        ),
+        (
+            "💰",
+            "Pauvreté",
+            "Inégalités, conditions de vie, seuil de pauvreté",
+            "PNUD HDI/MPI · Banque Mondiale",
+            "#E65100",
+        ),
+        (
+            "📊",
+            "Économie",
+            "PIB, croissance, conjoncture trimestrielle, secteurs",
+            "BDEF 2024 · WEO FMI · Banque Mondiale",
+            "#00853F",
+        ),
+        (
+            "💼",
+            "Emploi",
+            "Chômage, activité, marché du travail, secteur informel",
+            "ENES · RGPH-5 Économie — ANSD",
+            "#1976D2",
+        ),
+        (
+            "🏥",
+            "Santé",
+            "Mortalité, nutrition, espérance de vie, vaccination",
+            "Banque Mondiale · PNUD",
+            "#C62828",
+        ),
+        (
+            "🎓",
+            "Éducation",
+            "Scolarisation, alphabétisation, parité, université",
+            "Banque Mondiale · PNUD",
+            "#6A1B9A",
+        ),
+        (
+            "🌾",
+            "Agriculture",
+            "Céréales, arachide, riz, élevage, sécurité alimentaire",
+            "EAA 2022-2023 — DAPSA",
+            "#558B2F",
+        ),
+        (
+            "📡",
+            "Télécoms & Numérique",
+            "Mobile, internet, opérateurs, pénétration, données",
+            "ARTP 2024",
+            "#00838F",
+        ),
+        (
+            "🏦",
+            "Finances & Dette",
+            "Dette publique, budget, audit, exécution budgétaire",
+            "DGTCP · Cour des Comptes",
+            "#5D4037",
+        ),
     ],
     "en": [
-        ("👥", "Population",           "Demographics, regions, households, migration",            "RGPH-5 2023 — ANSD",                  "#1565C0"),
-        ("💰", "Poverty",              "Inequality, living conditions, poverty threshold",        "UNDP HDI/MPI · World Bank",           "#E65100"),
-        ("📊", "Economy",              "GDP, growth, quarterly outlook, sectors",                 "BDEF 2024 · IMF WEO · World Bank",    "#00853F"),
-        ("💼", "Employment",           "Unemployment, activity, labour market, informal sector", "ENES · RGPH-5 Economy — ANSD",        "#1976D2"),
-        ("🏥", "Health",               "Mortality, nutrition, life expectancy, vaccination",      "World Bank · UNDP",                   "#C62828"),
-        ("🎓", "Education",            "Enrollment, literacy, gender parity, university",         "World Bank · UNDP",                   "#6A1B9A"),
-        ("🌾", "Agriculture",          "Cereals, groundnut, rice, livestock, food security",     "EAA 2022-2023 — DAPSA",               "#558B2F"),
-        ("📡", "Telecoms & Digital",   "Mobile, internet, operators, penetration, data usage",   "ARTP 2024",                           "#00838F"),
-        ("🏦", "Public Finance & Debt","Public debt, budget, audit, budget execution",            "DGTCP · Cour des Comptes",            "#5D4037"),
+        (
+            "👥",
+            "Population",
+            "Demographics, regions, households, migration",
+            "RGPH-5 2023 — ANSD",
+            "#1565C0",
+        ),
+        (
+            "💰",
+            "Poverty",
+            "Inequality, living conditions, poverty threshold",
+            "UNDP HDI/MPI · World Bank",
+            "#E65100",
+        ),
+        (
+            "📊",
+            "Economy",
+            "GDP, growth, quarterly outlook, sectors",
+            "BDEF 2024 · IMF WEO · World Bank",
+            "#00853F",
+        ),
+        (
+            "💼",
+            "Employment",
+            "Unemployment, activity, labour market, informal sector",
+            "ENES · RGPH-5 Economy — ANSD",
+            "#1976D2",
+        ),
+        (
+            "🏥",
+            "Health",
+            "Mortality, nutrition, life expectancy, vaccination",
+            "World Bank · UNDP",
+            "#C62828",
+        ),
+        (
+            "🎓",
+            "Education",
+            "Enrollment, literacy, gender parity, university",
+            "World Bank · UNDP",
+            "#6A1B9A",
+        ),
+        (
+            "🌾",
+            "Agriculture",
+            "Cereals, groundnut, rice, livestock, food security",
+            "EAA 2022-2023 — DAPSA",
+            "#558B2F",
+        ),
+        (
+            "📡",
+            "Telecoms & Digital",
+            "Mobile, internet, operators, penetration, data usage",
+            "ARTP 2024",
+            "#00838F",
+        ),
+        (
+            "🏦",
+            "Public Finance & Debt",
+            "Public debt, budget, audit, budget execution",
+            "DGTCP · Cour des Comptes",
+            "#5D4037",
+        ),
     ],
 }
 
@@ -296,8 +395,9 @@ THEME_QUESTIONS = {
 
 FAQ_ITEMS = {
     "fr": [
-        ("D'où viennent les données ?",
-         """Les données proviennent exclusivement des institutions officielles sénégalaises et internationales :
+        (
+            "D'où viennent les données ?",
+            """Les données proviennent exclusivement des institutions officielles sénégalaises et internationales :
 - **ANSD** — RGPH-5 (population), BDEF (macroéconomie), ENES (emploi), NEER (conjoncture trimestrielle)
 - **DGTCP** — Bulletins statistiques de la dette publique (T1-T2 2024)
 - **Cour des Comptes** — Rapport d'audit des finances publiques 2019-2024
@@ -307,14 +407,16 @@ FAQ_ITEMS = {
 - **PNUD** — IDH 2024 et IPM 2023
 - **ARTP** — Rapport sur les marchés des communications électroniques 2024
 
-SenStat ne collecte pas de données propres et ne navigue pas sur Internet."""),
-
-        ("Les réponses sont-elles fiables ?",
-         """Chaque réponse cite toujours : le rapport, l'institution, l'année et la page exacte.
-Si une information n'est pas disponible dans les sources indexées, le système vous le dit clairement plutôt que d'inventer une réponse."""),
-
-        ("Les données sont-elles à jour ?",
-         """Sources actuellement indexées :
+SenStat ne collecte pas de données propres et ne navigue pas sur Internet.""",
+        ),
+        (
+            "Les réponses sont-elles fiables ?",
+            """Chaque réponse cite toujours : le rapport, l'institution, l'année et la page exacte.
+Si une information n'est pas disponible dans les sources indexées, le système vous le dit clairement plutôt que d'inventer une réponse.""",
+        ),
+        (
+            "Les données sont-elles à jour ?",
+            """Sources actuellement indexées :
 - RGPH-5 2023, BDEF 2024, ENES T3-2023, NEER T4-2024 (ANSD)
 - DGTCP dette T2-2024
 - Cour des Comptes audit 2024
@@ -323,24 +425,29 @@ Si une information n'est pas disponible dans les sources indexées, le système 
 - PNUD HDI/MPI 2024
 - ARTP S1-2024
 
-Nous mettons à jour régulièrement avec les nouvelles publications."""),
+Nous mettons à jour régulièrement avec les nouvelles publications.""",
+        ),
+        (
+            "Puis-je poser ma question en anglais ?",
+            """Oui — le système répond dans la même langue que votre question.
+Les données restent celles des rapports officiels sénégalais.""",
+        ),
+        (
+            "Comment citer une réponse de SenStat ?",
+            """Citez la source officielle indiquée dans la réponse, pas SenStat lui-même.
 
-        ("Puis-je poser ma question en anglais ?",
-         """Oui — le système répond dans la même langue que votre question.
-Les données restent celles des rapports officiels sénégalais."""),
-
-        ("Comment citer une réponse de SenStat ?",
-         """Citez la source officielle indiquée dans la réponse, pas SenStat lui-même.
-
-*Exemple : « Selon l'ANSD, EHCVM 2021-2022, p.27, le taux de pauvreté est de 37,5 %. »*"""),
-
-        ("Quelle est la différence avec Google ?",
-         """Google vous renvoie vers des pages web pouvant contenir des erreurs ou des données obsolètes.
-SenStat lit directement dans les rapports PDF officiels et cite la page exacte."""),
+*Exemple : « Selon l'ANSD, EHCVM 2021-2022, p.27, le taux de pauvreté est de 37,5 %. »*""",
+        ),
+        (
+            "Quelle est la différence avec Google ?",
+            """Google vous renvoie vers des pages web pouvant contenir des erreurs ou des données obsolètes.
+SenStat lit directement dans les rapports PDF officiels et cite la page exacte.""",
+        ),
     ],
     "en": [
-        ("Where does the data come from?",
-         """Data comes exclusively from official Senegalese and international institutions:
+        (
+            "Where does the data come from?",
+            """Data comes exclusively from official Senegalese and international institutions:
 - **ANSD** — RGPH-5 (population), BDEF (macroeconomy), ENES (employment), NEER (quarterly outlook)
 - **DGTCP** — Public debt statistical bulletins (Q1-Q2 2024)
 - **Cour des Comptes** — Public finance audit report 2019-2024
@@ -350,14 +457,16 @@ SenStat lit directement dans les rapports PDF officiels et cite la page exacte."
 - **UNDP** — HDI 2024 and MPI 2023
 - **ARTP** — Electronic communications market report 2024
 
-SenStat does not collect its own data and does not browse the internet."""),
-
-        ("Are the answers reliable?",
-         """Every answer always cites: the report, the institution, the year and the exact page.
-If information is not available in the indexed sources, the system tells you clearly rather than making up an answer."""),
-
-        ("Is the data up to date?",
-         """Currently indexed sources:
+SenStat does not collect its own data and does not browse the internet.""",
+        ),
+        (
+            "Are the answers reliable?",
+            """Every answer always cites: the report, the institution, the year and the exact page.
+If information is not available in the indexed sources, the system tells you clearly rather than making up an answer.""",
+        ),
+        (
+            "Is the data up to date?",
+            """Currently indexed sources:
 - RGPH-5 2023, BDEF 2024, ENES Q3-2023, NEER Q4-2024 (ANSD)
 - DGTCP debt Q2-2024
 - Cour des Comptes audit 2024
@@ -366,19 +475,23 @@ If information is not available in the indexed sources, the system tells you cle
 - UNDP HDI/MPI 2024
 - ARTP H1-2024
 
-We update regularly with new publications."""),
+We update regularly with new publications.""",
+        ),
+        (
+            "Can I ask my question in English?",
+            """Yes — the system responds in the same language as your question.
+The underlying data remains from official Senegalese reports.""",
+        ),
+        (
+            "How do I cite a SenStat answer?",
+            """Cite the official source shown in the answer, not SenStat itself.
 
-        ("Can I ask my question in English?",
-         """Yes — the system responds in the same language as your question.
-The underlying data remains from official Senegalese reports."""),
-
-        ("How do I cite a SenStat answer?",
-         """Cite the official source shown in the answer, not SenStat itself.
-
-*Example: \"According to ANSD, EHCVM 2021-2022, p.27, the poverty rate is 37.5%.\"*"""),
-
-        ("What is the difference with Google?",
-         """Google points to web pages that may contain errors or outdated figures.
-SenStat reads directly from official PDF reports and cites the exact page."""),
+*Example: \"According to ANSD, EHCVM 2021-2022, p.27, the poverty rate is 37.5%.\"*""",
+        ),
+        (
+            "What is the difference with Google?",
+            """Google points to web pages that may contain errors or outdated figures.
+SenStat reads directly from official PDF reports and cites the exact page.""",
+        ),
     ],
 }

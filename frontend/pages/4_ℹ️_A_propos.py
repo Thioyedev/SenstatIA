@@ -1,11 +1,14 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import streamlit as st
+
 from frontend.style import inject_css, sidebar_brand
 
 st.set_page_config(
@@ -141,7 +144,8 @@ with col_right:
     ]
 
     for icon, layer, tech in stack:
-        st.markdown(f"""
+        st.markdown(
+            f"""
 <div style="display:flex;align-items:center;background:white;border-radius:8px;
             padding:10px 14px;margin:6px 0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
     <span style="font-size:1.3rem;margin-right:10px;">{icon}</span>
@@ -150,7 +154,9 @@ with col_right:
         <div style="font-size:0.88rem;font-weight:600;color:#222;">{tech}</div>
     </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+            unsafe_allow_html=True,
+        )
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f"### {t['phases_h']}")

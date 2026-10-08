@@ -1,11 +1,14 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import streamlit as st
+
 from frontend.style import inject_css, sidebar_brand
 from vectorstore.chroma_store import ChromaStore
 
@@ -23,30 +26,30 @@ lang = st.session_state.get("lang", "fr")
 
 T = {
     "fr": {
-        "title":       "🔍 Recherche dans les sources",
-        "caption":     "Recherche sémantique directe dans les chunks indexés",
+        "title": "🔍 Recherche dans les sources",
+        "caption": "Recherche sémantique directe dans les chunks indexés",
         "placeholder": "Ex: taux de chômage par région",
-        "n_label":     "Résultats",
-        "src_label":   "Filtrer par source",
+        "n_label": "Résultats",
+        "src_label": "Filtrer par source",
         "all_sources": "Toutes les sources",
-        "search_btn":  "🔍 Rechercher",
-        "spinner":     "Recherche en cours...",
-        "results_found": "{n} chunks trouvés pour *\"{q}\"*",
-        "similarity":  "similarité",
-        "no_query":    "Veuillez saisir une requête.",
+        "search_btn": "🔍 Rechercher",
+        "spinner": "Recherche en cours...",
+        "results_found": '{n} chunks trouvés pour *"{q}"*',
+        "similarity": "similarité",
+        "no_query": "Veuillez saisir une requête.",
     },
     "en": {
-        "title":       "🔍 Search within sources",
-        "caption":     "Direct semantic search across indexed chunks",
+        "title": "🔍 Search within sources",
+        "caption": "Direct semantic search across indexed chunks",
         "placeholder": "E.g.: unemployment rate by region",
-        "n_label":     "Results",
-        "src_label":   "Filter by source",
+        "n_label": "Results",
+        "src_label": "Filter by source",
         "all_sources": "All sources",
-        "search_btn":  "🔍 Search",
-        "spinner":     "Searching...",
-        "results_found": "{n} chunks found for *\"{q}\"*",
-        "similarity":  "similarity",
-        "no_query":    "Please enter a search query.",
+        "search_btn": "🔍 Search",
+        "spinner": "Searching...",
+        "results_found": '{n} chunks found for *"{q}"*',
+        "similarity": "similarity",
+        "no_query": "Please enter a search query.",
     },
 }
 
@@ -55,9 +58,11 @@ t = T[lang]
 st.title(t["title"])
 st.caption(t["caption"])
 
+
 @st.cache_resource
 def get_store():
     return ChromaStore()
+
 
 store = get_store()
 
@@ -108,22 +113,26 @@ if submitted and query.strip():
         tag = (
             '<span style="background:#E3F2FD;color:#1565C0;border-radius:3px;'
             'padding:1px 6px;font-size:0.72rem;">TABLE</span>'
-            if is_table else ""
+            if is_table
+            else ""
         )
 
-        st.markdown(f"""
+        st.markdown(
+            f"""
 <div class="chunk-card">
     <div class="meta">
         #{i} &nbsp;·&nbsp; {institution} — {report} ({year}), p.{page}
         &nbsp; {tag}
         <span class="score" style="color:{score_color};">
-            {t['similarity']} {score_pct}%
+            {t["similarity"]} {score_pct}%
         </span>
     </div>
     <div style="font-size:0.88rem; color:#333; line-height:1.5;">
-        {chunk['text'][:400]}{'...' if len(chunk['text']) > 400 else ''}
+        {chunk["text"][:400]}{"..." if len(chunk["text"]) > 400 else ""}
     </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+            unsafe_allow_html=True,
+        )
 elif submitted:
     st.warning(t["no_query"])

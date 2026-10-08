@@ -20,7 +20,8 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install ruff mypy
+      # Pinned: an unpinned ruff once started formatting Markdown on its own.
+      - run: pip install ruff==0.16.10 mypy==2.4.0
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy agents/ api/ --ignore-missing-imports --no-strict-optional

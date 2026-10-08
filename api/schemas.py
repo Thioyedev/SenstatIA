@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class Message(BaseModel):
@@ -9,26 +8,26 @@ class Message(BaseModel):
 
 class QueryRequest(BaseModel):
     query: str
-    messages: List[Message] = []
+    messages: list[Message] = []
     n_results: int = 8
-    filter_source: Optional[str] = None
+    filter_source: str | None = None
 
 
 class Citation(BaseModel):
-    institution: Optional[str] = None
-    report_name: Optional[str] = None
-    year: Optional[int] = None
-    page: Optional[int] = None
-    url: Optional[str] = None
-    source_id: Optional[str] = None
+    institution: str | None = None
+    report_name: str | None = None
+    year: int | None = None
+    page: int | None = None
+    url: str | None = None
+    source_id: str | None = None
 
 
 class QueryResponse(BaseModel):
     query: str
     answer: str
-    citations: List[Citation]
+    citations: list[Citation]
     intent: str
-    viz: Optional[dict] = None
+    viz: dict | None = None
 
 
 class DocumentInfo(BaseModel):
@@ -36,7 +35,7 @@ class DocumentInfo(BaseModel):
     institution: str
     report_name: str
     year: int
-    topics: List[str]
+    topics: list[str]
     url: str
     chunk_count: int
 

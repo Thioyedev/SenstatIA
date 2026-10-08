@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 from agents.retrieval_agent import _detect_source_filter, retrieval_agent
 
 RAW_CHUNKS = [
-    {"text": f"chunk {i}", "source_id": "ehcvm_2021", "chunk_id": f"c{i}"}
-    for i in range(5)
+    {"text": f"chunk {i}", "source_id": "ehcvm_2021", "chunk_id": f"c{i}"} for i in range(5)
 ]
 
 

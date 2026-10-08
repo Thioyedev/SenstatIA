@@ -1,7 +1,9 @@
 import os
 import re
+
 import anthropic
 from loguru import logger
+
 from agents.state import AgentState
 
 _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -96,9 +98,7 @@ def _format_chunks(chunks: list[dict]) -> str:
         report = c.get("report_name", "?")
         year = c.get("year", "?")
         page = c.get("page_number", "?")
-        parts.append(
-            f"[{i}] {institution} — {report} ({year}), p.{page}\n{c['text']}"
-        )
+        parts.append(f"[{i}] {institution} — {report} ({year}), p.{page}\n{c['text']}")
     return "\n\n".join(parts)
 
 
@@ -109,14 +109,16 @@ def _extract_citations(chunks: list[dict]) -> list[dict]:
         key = (c.get("source_id"), c.get("page_number"))
         if key not in seen:
             seen.add(key)
-            citations.append({
-                "institution": c.get("institution"),
-                "report_name": c.get("report_name"),
-                "year": c.get("year"),
-                "page": c.get("page_number"),
-                "url": c.get("url"),
-                "source_id": c.get("source_id"),
-            })
+            citations.append(
+                {
+                    "institution": c.get("institution"),
+                    "report_name": c.get("report_name"),
+                    "year": c.get("year"),
+                    "page": c.get("page_number"),
+                    "url": c.get("url"),
+                    "source_id": c.get("source_id"),
+                }
+            )
     return citations
 
 
@@ -124,37 +126,42 @@ def _format_structured(state: AgentState) -> str:
     parts = []
     trend = state.get("trend_output")
     if trend and trend.get("series"):
-        parts.append(_TREND_BLOCK.format(
-            trend=trend.get("trend"),
-            cagr=f"{trend['cagr']:.1%}" if trend.get("cagr") is not None else "N/A",
-            series=", ".join(
-                f"{p['year']}: {p['value']}{p.get('unit','')}" for p in trend["series"]
-            ),
-            insight=trend.get("insight", ""),
-        ))
+        parts.append(
+            _TREND_BLOCK.format(
+                trend=trend.get("trend"),
+                cagr=f"{trend['cagr']:.1%}" if trend.get("cagr") is not None else "N/A",
+                series=", ".join(
+                    f"{p['year']}: {p['value']}{p.get('unit', '')}" for p in trend["series"]
+                ),
+                insight=trend.get("insight", ""),
+            )
+        )
     compare = state.get("compare_output")
     if compare and compare.get("entities"):
         entities_str = " | ".join(
-            f"{e['name']}: " + ", ".join(
-                f"{v['metric']}={v['value']}{v.get('unit','')}" for v in e["values"]
-            )
+            f"{e['name']}: "
+            + ", ".join(f"{v['metric']}={v['value']}{v.get('unit', '')}" for v in e["values"])
             for e in compare["entities"]
         )
         gaps_str = ", ".join(
-            f"{g['metric']}: écart {g['absolute']}{g.get('unit','')} ({g['winner']} en tête)"
+            f"{g['metric']}: écart {g['absolute']}{g.get('unit', '')} ({g['winner']} en tête)"
             for g in compare.get("gaps", [])
         )
-        parts.append(_COMPARE_BLOCK.format(
-            entities=entities_str,
-            gaps=gaps_str or "N/A",
-            insight=compare.get("insight", ""),
-        ))
+        parts.append(
+            _COMPARE_BLOCK.format(
+                entities=entities_str,
+                gaps=gaps_str or "N/A",
+                insight=compare.get("insight", ""),
+            )
+        )
     compute = state.get("compute_output")
     if compute and compute.get("result") is not None:
-        parts.append(_COMPUTE_BLOCK.format(
-            result=compute["result"],
-            interpretation=compute.get("interpretation", ""),
-        ))
+        parts.append(
+            _COMPUTE_BLOCK.format(
+                result=compute["result"],
+                interpretation=compute.get("interpretation", ""),
+            )
+        )
     return "\n".join(parts)
 
 
@@ -165,7 +172,9 @@ def synthesis_agent(state: AgentState) -> dict:
 
     chunks_text = _format_chunks(chunks)
     structured_data = _format_structured(state)
-    prompt = SYNTHESIS_PROMPT.format(chunks=chunks_text, structured_data=structured_data, query=query)
+    prompt = SYNTHESIS_PROMPT.format(
+        chunks=chunks_text, structured_data=structured_data, query=query
+    )
 
     # Build multi-turn messages: inject history (plain Q&A), then current prompt with chunks
     messages = []
@@ -187,8 +196,8 @@ def synthesis_agent(state: AgentState) -> dict:
     raw = response.content[0].text.strip()
 
     # Extract SOURCES_USED line and filter citations to only used chunks
-    sources_match = re.search(r'\nSOURCES_USED:\s*([^\n]+)', raw)
-    synthesis = re.sub(r'\nSOURCES_USED:[^\n]*', '', raw).strip()
+    sources_match = re.search(r"\nSOURCES_USED:\s*([^\n]+)", raw)
+    synthesis = re.sub(r"\nSOURCES_USED:[^\n]*", "", raw).strip()
 
     if sources_match:
         used_str = sources_match.group(1).strip()
@@ -205,5 +214,7 @@ def synthesis_agent(state: AgentState) -> dict:
         used_chunks = chunks  # fallback: cite all if model didn't follow instruction
 
     citations = _extract_citations(used_chunks)
-    logger.info(f"Synthesis → {len(synthesis)} chars, {len(citations)} citations (from {len(chunks)} retrieved)")
+    logger.info(
+        f"Synthesis → {len(synthesis)} chars, {len(citations)} citations (from {len(chunks)} retrieved)"
+    )
     return {"synthesis": synthesis, "citations": citations}

@@ -1,13 +1,16 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import streamlit as st
-from frontend_public.style_public import inject_css, sidebar_brand, section_lbl
-from frontend_public.i18n import t, THEMES, THEME_QUESTIONS
+
+from frontend_public.i18n import THEME_QUESTIONS, THEMES, t
+from frontend_public.style_public import inject_css, sidebar_brand
 
 st.set_page_config(
     page_title="Thèmes — SenStat",
@@ -26,7 +29,7 @@ st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 
 questions = THEME_QUESTIONS[lang]
 
-for emoji, name, desc, src, color in THEMES[lang]:
+for emoji, name, desc, src, _color in THEMES[lang]:
     theme_qs = questions.get(name, [])
     with st.expander(f"**{emoji} {name}**", expanded=False):
         st.caption(f"{desc} · {src}")
@@ -38,8 +41,11 @@ for emoji, name, desc, src, color in THEMES[lang]:
                     st.switch_page("pages/1_💬_Poser_une_question.py")
 
 st.markdown("<hr class='divider'>", unsafe_allow_html=True)
-st.markdown(f"""
+st.markdown(
+    f"""
 <div style="text-align:center;color:#bbb;font-size:0.75rem;padding:8px 0 16px 0;">
     {t("themes_footer")}
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)

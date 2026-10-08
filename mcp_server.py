@@ -18,8 +18,7 @@ Claude Desktop config (~/.claude/claude_desktop_config.json):
       }
     }
 """
-import asyncio
-import os
+
 import sys
 from pathlib import Path
 
@@ -34,10 +33,12 @@ load_dotenv()
 # ── Lazy-init graph (loaded once on first call) ──────────────────────────────────────────
 _graph = None
 
+
 def _get_graph():
     global _graph
     if _graph is None:
         from agents.graph import build_graph
+
         _graph = build_graph()
         logger.info("LangGraph compiled and ready")
     return _graph

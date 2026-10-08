@@ -5,15 +5,17 @@ import pytest
 
 from agents.trend_agent import trend_agent
 
-VALID_TREND_JSON = json.dumps({
-    "series": [
-        {"year": 2018, "value": 38.0, "unit": "%", "label": "Taux de pauvreté"},
-        {"year": 2021, "value": 37.5, "unit": "%", "label": "Taux de pauvreté"},
-    ],
-    "cagr": -0.004,
-    "trend": "baisse",
-    "insight": "Légère baisse.",
-})
+VALID_TREND_JSON = json.dumps(
+    {
+        "series": [
+            {"year": 2018, "value": 38.0, "unit": "%", "label": "Taux de pauvreté"},
+            {"year": 2021, "value": 37.5, "unit": "%", "label": "Taux de pauvreté"},
+        ],
+        "cagr": -0.004,
+        "trend": "baisse",
+        "insight": "Légère baisse.",
+    }
+)
 EMPTY_TREND_JSON = json.dumps({"series": [], "cagr": None, "trend": None, "insight": None})
 
 

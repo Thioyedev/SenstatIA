@@ -1,5 +1,6 @@
-import pdfplumber
 from pathlib import Path
+
+import pdfplumber
 from loguru import logger
 
 OCR_MIN_CHARS = 200
@@ -35,11 +36,7 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
     Stratégie : pdfplumber en premier, OCR en fallback si texte < OCR_MIN_CHARS.
     """
     path = Path(pdf_path)
-    result = {
-        "source_path": str(path),
-        "filename": path.name,
-        "pages": []
-    }
+    result: dict = {"source_path": str(path), "filename": path.name, "pages": []}
 
     ocr_pages = 0
     with pdfplumber.open(pdf_path) as pdf:
@@ -57,17 +54,16 @@ def extract_text_from_pdf(pdf_path: str) -> dict:
                     ocr_used = True
                     ocr_pages += 1
 
-            result["pages"].append({
-                "page_number": i + 1,
-                "text": text,
-                "char_count": len(text),
-                "ocr": ocr_used,
-            })
+            result["pages"].append(
+                {
+                    "page_number": i + 1,
+                    "text": text,
+                    "char_count": len(text),
+                    "ocr": ocr_used,
+                }
+            )
 
-    logger.info(
-        f"Extrait {len(result['pages'])} pages de {path.name} "
-        f"({ocr_pages} via OCR)"
-    )
+    logger.info(f"Extrait {len(result['pages'])} pages de {path.name} ({ocr_pages} via OCR)")
     return result
 
 
@@ -77,14 +73,16 @@ def _ocr_page(pdf_path: str, page_index: int) -> str:
     if not _ocr_available():
         return ""
     try:
-        from pdf2image import convert_from_path
         import pytesseract
+        from pdf2image import convert_from_path
 
         images = convert_from_path(
-            pdf_path, first_page=page_index + 1, last_page=page_index + 1,
+            pdf_path,
+            first_page=page_index + 1,
+            last_page=page_index + 1,
             dpi=OCR_DPI,
         )
         return pytesseract.image_to_string(images[0], lang=OCR_LANG)
     except Exception as e:
-        logger.error(f"OCR échoué page {page_index+1}: {e}")
+        logger.error(f"OCR échoué page {page_index + 1}: {e}")
         return ""

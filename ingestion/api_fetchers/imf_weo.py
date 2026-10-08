@@ -4,19 +4,20 @@ Converts WEO indicator time-series for Senegal into indexable text chunks.
 
 API docs: https://www.imf.org/external/datamapper/api/v1
 """
+
 import httpx
 from loguru import logger
 
 INDICATOR_LABELS = {
-    "NGDP_RPCH":    "Croissance du PIB réel (%)",
-    "NGDPDPC":      "PIB par habitant (USD courants)",
-    "PCPIPCH":      "Inflation IPC (variation annuelle %)",
-    "BCA_NGDPD":    "Solde du compte courant (% PIB)",
-    "GGXCNL_NGDP":  "Solde budgétaire (% PIB)",
-    "GGXWDG_NGDP":  "Dette publique brute (% PIB)",
-    "LUR":          "Taux de chômage (%)",
-    "PPPGDP":       "PIB PPA (milliards USD)",
-    "NID_NGDP":     "Investissement total (% PIB)",
+    "NGDP_RPCH": "Croissance du PIB réel (%)",
+    "NGDPDPC": "PIB par habitant (USD courants)",
+    "PCPIPCH": "Inflation IPC (variation annuelle %)",
+    "BCA_NGDPD": "Solde du compte courant (% PIB)",
+    "GGXCNL_NGDP": "Solde budgétaire (% PIB)",
+    "GGXWDG_NGDP": "Dette publique brute (% PIB)",
+    "LUR": "Taux de chômage (%)",
+    "PPPGDP": "PIB PPA (milliards USD)",
+    "NID_NGDP": "Investissement total (% PIB)",
 }
 
 
@@ -58,18 +59,20 @@ def fetch_imf_weo(source: dict) -> list[dict]:
             + "\n".join(series_lines)
         )
 
-        chunks.append({
-            "text": text,
-            "source_id": source["id"],
-            "institution": source["institution"],
-            "report_name": source["name"],
-            "year": source.get("year"),
-            "page_number": 0,
-            "chunk_index": indicators.index(indicator),
-            "is_table": False,
-            "indicator_code": indicator,
-            "indicator_label": label,
-        })
+        chunks.append(
+            {
+                "text": text,
+                "source_id": source["id"],
+                "institution": source["institution"],
+                "report_name": source["name"],
+                "year": source.get("year"),
+                "page_number": 0,
+                "chunk_index": indicators.index(indicator),
+                "is_table": False,
+                "indicator_code": indicator,
+                "indicator_label": label,
+            }
+        )
         logger.debug(f"IMF WEO: fetched {indicator} — {len(series_lines)} data points")
 
     logger.info(f"IMF WEO: {len(chunks)} indicator chunks fetched for {country}")

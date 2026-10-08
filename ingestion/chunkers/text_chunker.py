@@ -1,14 +1,12 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from typing import List
+
 
 def chunk_pages(pages: list[dict], source_metadata: dict) -> list[dict]:
     """
     Chunke les pages extraites avec métadonnées.
     """
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=512,
-        chunk_overlap=64,
-        separators=["\n\n", "\n", ".", " "]
+        chunk_size=512, chunk_overlap=64, separators=["\n\n", "\n", ".", " "]
     )
 
     chunks = []
@@ -18,13 +16,15 @@ def chunk_pages(pages: list[dict], source_metadata: dict) -> list[dict]:
 
         texts = splitter.split_text(page["text"])
         for j, text in enumerate(texts):
-            chunks.append({
-                "text": text,
-                "page_number": page["page_number"],
-                "chunk_index": j,
-                "ocr": bool(page.get("ocr", False)),
-                **source_metadata  # institution, report_name, year, etc.
-            })
+            chunks.append(
+                {
+                    "text": text,
+                    "page_number": page["page_number"],
+                    "chunk_index": j,
+                    "ocr": bool(page.get("ocr", False)),
+                    **source_metadata,  # institution, report_name, year, etc.
+                }
+            )
 
     return chunks
 
@@ -39,5 +39,5 @@ def chunk_table(table: dict, source_metadata: dict) -> dict:
         "page_number": table["page"],
         "chunk_index": f"table_{table['table_index']}",
         "is_table": True,
-        **source_metadata
+        **source_metadata,
     }
