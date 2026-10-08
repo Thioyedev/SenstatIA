@@ -73,10 +73,13 @@ senstat/
 │   │   └── charts.py            # Chart rendering
 │   └── static/
 │
-├── tests/                       # Ingestion only — no agent/retrieval/API tests yet
+├── tests/                       # No FastAPI route tests yet
+│   ├── conftest.py
 │   ├── unit/
+│   │   ├── test_{router,retrieval,trend,compare,compute,viz,synthesis}_agent.py
 │   │   └── test_extractors.py   # OCR fallback decision table (Tesseract mocked)
 │   └── integration/
+│       ├── test_query_e2e.py    # Full graph; needs a real API key + indexed Chroma
 │       └── test_ocr_pipeline.py # OCR against a real Tesseract
 │
 ├── data/
@@ -118,7 +121,7 @@ senstat/
 | API | `fastapi` + `uvicorn` | Async |
 | Frontend | `streamlit` | Rapid proto, v2 → React |
 | Containerization | `docker` + `docker-compose` | |
-| CI/CD | `github-actions` | Lint → test → build → deploy |
+| CI/CD | `github-actions` | `ci.yml`: lint → unit tests (70% coverage gate) → Docker build. No deploy job |
 
 ---
 
@@ -258,7 +261,7 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Inline citation stripping (prompt rule + regex safety net in API)
 - [x] RAGAS evaluation pipeline + golden dataset (20 questions, 6 themes)
 
-### Phase 3 — Advanced Agents ✓ (Complete, except tests)
+### Phase 3 — Advanced Agents ✓ (Complete; CI not yet green)
 - [x] Compute agent — `subprocess` sandbox, Haiku, timeout 8s
 - [x] Viz agent — Plotly trend/compare charts with source watermark
 - [x] Parallel agent execution — Send API fan-out on `mixed` intent
@@ -269,13 +272,13 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Query rewriter node — resolves follow-up questions against history
 - [x] ColPali visual indexing (`colpali_indexer.py`) — gated by `USE_COLPALI`
 - [x] Cohere `rerank-v3.5` — gated by `USE_COHERE_RERANK`, CrossEncoder fallback
-- [ ] Unit + integration tests — partial. Ingestion is covered
-      (`test_extractors.py`, `test_ocr_pipeline.py`: OCR fallback). Agents,
-      retrieval and the API have none; this is the one Phase 3 item genuinely
-      outstanding
+- [x] Unit + integration tests — every agent has a unit test file, plus
+      ingestion/OCR and a full-graph e2e test. Not yet passing as a suite:
+      see Known Gaps. FastAPI routes are untested
 
 ### Phase 4 — Production
-- [ ] GitHub Actions CI/CD (lint → test → build → deploy)
+- [ ] GitHub Actions CI/CD — `ci.yml` exists (lint, unit tests, Docker build)
+      but has failed on every run; no deploy job yet
 - [ ] Docker hardening: health checks on frontend services, non-root user
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
@@ -288,7 +291,8 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 | Gap | Impact | Fix in |
 |---|---|---|
-| No tests for agents, retrieval or API (ingestion/OCR only, as of 2026-10-08) | Risk when refactoring agents | Phase 3 |
+| CI red on every run since added 2026-05-19. Measured 2026-10-08: 208 ruff errors, 53 files unformatted, coverage 57% < 70% gate, 1 failing test | No regression gate in practice | Phase 4 |
+| `_detect_source_filter` matches `recette` in the culinary sense ("recette de thiéboudienne" → budget sources) | Off-topic queries get a spurious source filter | Phase 4 |
 | No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
 | `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
 | RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
@@ -299,10 +303,11 @@ Use `subprocess` with timeout, never raw `exec()`.
 Entries previously listed here that no longer hold, kept so they are not
 re-added from memory:
 
-- **"Zero tests" / "`tests/` holds only `__init__.py`"** — false since
-  2026-09-17. `tests/unit/test_extractors.py` and
-  `tests/integration/test_ocr_pipeline.py` cover the OCR fallback. The gap that
-  remains is agents, retrieval and API.
+- **"Zero tests" / "`tests/` holds only `__init__.py`"** — false. Agent unit
+  tests and `ci.yml` landed on remote `stg` on 2026-05-19; the local `stg`
+  had diverged and never pulled them, which is how this claim survived (and
+  was briefly re-asserted on 2026-10-08). Check `git status -sb` against the
+  remote before declaring something missing.
 - **"OCR fallback missing"** — false. OCR has always been wired into
   `extract_text_from_pdf`. Separately, measured 2026-09-17: the current corpus
   (5 PDFs, 962 pages) contains **no scanned content** — every document yields
