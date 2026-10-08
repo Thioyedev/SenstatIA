@@ -279,8 +279,8 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 ### Phase 4 — Production
 - [ ] GitHub Actions CI/CD — `ci.yml` exists (lint, unit tests, Docker build)
-      and its lint + unit-test jobs pass locally (2026-10-08, clean Python 3.11
-      env). The Docker build job was not verified locally. No deploy job yet
+      and all three jobs passed on GitHub for the first time on 2026-10-08
+      (run 37794741477, commit 113bc04). No deploy job yet
 - [ ] Docker hardening: health checks on frontend services, non-root user
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
@@ -293,7 +293,7 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 | Gap | Impact | Fix in |
 |---|---|---|
-| CI has never passed on GitHub: red on every run 2026-05-19 → 2026-10-08. Fixed locally 2026-10-08; first green run on GitHub not yet observed | Do not treat CI as a gate until it has passed once | Phase 4 |
+| Local `data/chroma` disagrees with `sources.json` (measured 2026-10-08: 1,887 chunks in 4 sources). 11 sources marked `indexed` have 0 chunks; `ehcvm_2021` and `ses_2022_2023` are marked `pending` but indexed; `rgph5_preliminaire` is `excluded` yet still has 109 chunks | Registry status is not evidence of what is searchable; superseded census figures can be cited. Staging's index (7,571 chunks per README) is a different copy | Re-index |
 | No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
 | `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
 | RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
