@@ -24,6 +24,14 @@ class TestDetectSourceFilter:
         f = _detect_source_filter("recette de thiéboudienne")
         assert f is None
 
+    def test_fiscal_revenue_maps_to_budget_sources(self):
+        budget = {"source_id": {"$in": ["dpee_ref", "dpee_sef", "dgb_budget"]}}
+        assert _detect_source_filter("recettes budgétaires 2023") == budget
+        assert _detect_source_filter("recettes de l'État en 2022") == budget
+
+    def test_recipe_plural_returns_none(self):
+        assert _detect_source_filter("recettes de cuisine sénégalaise") is None
+
 
 class TestRetrievalAgent:
     def test_returns_retrieved_chunks(self, base_state):

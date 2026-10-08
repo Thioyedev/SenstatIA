@@ -65,8 +65,11 @@ _SOURCE_RULES: list[tuple[re.Pattern, list[str]]] = [
     # Public finances & budget
     (
         re.compile(
-            r"\b(?:budget|fiscal|recette\w*|dépense\w*|déficit|loi de finances|"
-            r"exécution budgétaire|ref |sef |dgb|finances publiques)",
+            r"\b(?:budget|fiscal|dépense\w*|déficit|loi de finances|"
+            r"exécution budgétaire|ref |sef |dgb|finances publiques|"
+            # "recette" alone is also a cooking recipe: require a fiscal qualifier
+            r"recettes?\s+(?:non\s+)?(?:fiscales?|budgétaires?|publiques?|douanières?|"
+            r"totales|courantes|de\s+l['’]\s*[ée]tat))",
             re.IGNORECASE,
         ),
         ["dpee_ref", "dpee_sef", "dgb_budget"],
