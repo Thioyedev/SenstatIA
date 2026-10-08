@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -23,7 +24,7 @@ inject_css()
 sidebar_brand()
 
 lang = st.session_state.get("lang", "fr")
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 T = {
     "fr": {
