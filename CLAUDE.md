@@ -73,10 +73,11 @@ senstat/
 │   │   └── charts.py            # Chart rendering
 │   └── static/
 │
-├── tests/                       # No FastAPI route tests yet
+├── tests/
 │   ├── conftest.py
 │   ├── unit/
 │   │   ├── test_{router,retrieval,trend,compare,compute,viz,synthesis}_agent.py
+│   │   ├── test_api.py          # Routes + CORS, graph and store faked
 │   │   └── test_extractors.py   # OCR fallback decision table (Tesseract mocked)
 │   └── integration/
 │       ├── test_query_e2e.py    # Full graph; needs a real API key + indexed Chroma
@@ -261,7 +262,7 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] Inline citation stripping (prompt rule + regex safety net in API)
 - [x] RAGAS evaluation pipeline + golden dataset (20 questions, 6 themes)
 
-### Phase 3 — Advanced Agents ✓ (Complete; CI not yet green)
+### Phase 3 — Advanced Agents ✓ (Complete)
 - [x] Compute agent — `subprocess` sandbox, Haiku, timeout 8s
 - [x] Viz agent — Plotly trend/compare charts with source watermark
 - [x] Parallel agent execution — Send API fan-out on `mixed` intent
@@ -273,12 +274,13 @@ Use `subprocess` with timeout, never raw `exec()`.
 - [x] ColPali visual indexing (`colpali_indexer.py`) — gated by `USE_COLPALI`
 - [x] Cohere `rerank-v3.5` — gated by `USE_COHERE_RERANK`, CrossEncoder fallback
 - [x] Unit + integration tests — every agent has a unit test file, plus
-      ingestion/OCR and a full-graph e2e test. Not yet passing as a suite:
-      see Known Gaps. FastAPI routes are untested
+      FastAPI routes, ingestion/OCR and a full-graph e2e test. Unit coverage
+      of `agents` + `api`: 78% (2026-10-08)
 
 ### Phase 4 — Production
 - [ ] GitHub Actions CI/CD — `ci.yml` exists (lint, unit tests, Docker build)
-      but has failed on every run; no deploy job yet
+      and its lint + unit-test jobs pass locally (2026-10-08, clean Python 3.11
+      env). The Docker build job was not verified locally. No deploy job yet
 - [ ] Docker hardening: health checks on frontend services, non-root user
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
@@ -291,8 +293,7 @@ Use `subprocess` with timeout, never raw `exec()`.
 
 | Gap | Impact | Fix in |
 |---|---|---|
-| CI red on every run since added 2026-05-19. Measured 2026-10-08: 208 ruff errors, 53 files unformatted, coverage 57% < 70% gate, 1 failing test | No regression gate in practice | Phase 4 |
-| `_detect_source_filter` matches `recette` in the culinary sense ("recette de thiéboudienne" → budget sources) | Off-topic queries get a spurious source filter | Phase 4 |
+| CI has never passed on GitHub: red on every run 2026-05-19 → 2026-10-08. Fixed locally 2026-10-08; first green run on GitHub not yet observed | Do not treat CI as a gate until it has passed once | Phase 4 |
 | No scrapers → manual PDF ingestion only | Stale data risk | Phase 4 |
 | `table_chunker.py` missing → tables chunked as one blob | Large tables may exceed useful chunk size | Phase 4 |
 | RAGAS eval last run 2026-05-05, pre-dates compute/viz/ColPali | Eval scores don't reflect current pipeline | Re-run |
