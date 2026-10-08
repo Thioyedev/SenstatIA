@@ -139,7 +139,7 @@ class AgentState(TypedDict):
 | Intent | Trigger | Specialist agent |
 |---|---|---|
 | `lookup` | Single fact, point-in-time | *(none — straight to synthesis)* |
-| `trend` | Time series, CAGR, évolution | `trend_agent` |
+| `trend` | Time series, CAGR, evolution over time | `trend_agent` |
 | `compare` | Two+ entities compared | `compare_agent` |
 | `compute` | Ratio, projection, formula | `compute_agent` |
 | `viz` | Explicit chart request | `trend_agent` → `viz_agent` |
@@ -330,26 +330,26 @@ pending  ──► indexed   (set by mark_indexed after successful ingestion)
 
 **Total: 25 sources — 10 indexed, 14 pending, 1 excluded**
 
-| Source ID | Institution | Description | Chunks |
+| Source ID | Institution | Description | Status |
 |---|---|---|---|
-| `rgph5_2023` | ANSD | RGPH 5 — Résultats Définitifs 2023 (666 pages) | ~3 793 |
-| `rgph5_economie` | ANSD | RGPH 5 — Caractéristiques économiques | indexed |
-| `ansd_bdef_2024` | ANSD | Bulletin Démographique et Économique 2024 | indexed |
-| `ansd_neer` | ANSD | Note de Conjoncture (NEER trimestriel) | indexed |
-| `ansd_enes` | ANSD | Enquête Nationale sur l'Emploi au Sénégal | indexed |
-| `dgtcp_dette` | DGTCP | Rapport Dette Publique | indexed |
-| `courdescomptes_audit_2024` | Cour des Comptes | Audit dette publique 2024 | indexed |
+| `rgph5_2023` | ANSD | General Population & Housing Census 5 — Final Results 2023 (666 pp.) | ~3 793 chunks |
+| `rgph5_economie` | ANSD | Census 5 — Economic Characteristics | indexed |
+| `ansd_bdef_2024` | ANSD | Demographic & Economic Statistical Bulletin 2024 | indexed |
+| `ansd_neer` | ANSD | Quarterly Economic Outlook (NEER) | indexed |
+| `ansd_enes` | ANSD | National Employment Survey (ENES) | indexed |
+| `dgtcp_dette` | DGTCP | Public Debt Report | indexed |
+| `courdescomptes_audit_2024` | Court of Auditors | Public Debt Audit 2024 | indexed |
 | `imf_weo_sen` | IMF | World Economic Outlook — Senegal | indexed |
 | `worldbank_sn` | World Bank | Open Data API — Senegal indicators | indexed |
-| `dapsa_eaa_2022` | DAPSA | Enquête Agricole Annuelle 2022 | indexed |
-| `undp_hdi_mpi` | UNDP | HDI / MPI — Senegal | indexed |
-| `artp_telecom` | ARTP | Rapport annuel Télécommunications | indexed |
-| `ehcvm_2021` | ANSD / World Bank | Enquête Harm. Cond. Vie Ménages 2021 | pending |
-| `ses_2022_2023` | DPEE | Situation Économique et Sociale 2022–2023 | pending |
-| `dpee_sef` | DPEE | Situation Économique et Financière | pending |
-| `eds_2023` | ANSD / DHS | Enquête Démographique et de Santé 2023 | pending |
-| `imf_country_reports` | IMF | Article IV + DSA reports — Senegal | pending |
-| `rgph5_preliminaire` | ANSD | RGPH 5 Résultats Préliminaires | *excluded* (replaced by `rgph5_2023`) |
+| `dapsa_eaa_2022` | DAPSA | Annual Agricultural Survey 2022 | indexed |
+| `undp_hdi_mpi` | UNDP | Human Development Index / Multidimensional Poverty Index — Senegal | indexed |
+| `artp_telecom` | ARTP | Annual Telecommunications Report | indexed |
+| `ehcvm_2021` | ANSD / World Bank | Harmonized Household Living Conditions Survey 2021 | pending |
+| `ses_2022_2023` | DPEE | Economic & Social Situation Report 2022–2023 | pending |
+| `dpee_sef` | DPEE | Economic & Financial Situation Report | pending |
+| `eds_2023` | ANSD / DHS | Demographic & Health Survey 2023 | pending |
+| `imf_country_reports` | IMF | Article IV Consultation + Debt Sustainability Analysis — Senegal | pending |
+| `rgph5_preliminaire` | ANSD | Census 5 — Preliminary Results | *excluded* (superseded by `rgph5_2023`) |
 
 ---
 
