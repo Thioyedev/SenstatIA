@@ -43,8 +43,12 @@ services:
       - API_URL=http://api:8000
     volumes:
       - .:/app
+    # Host port 8503, not 8501: StatIQ shares the staging host and holds 8501 on
+    # all interfaces, so this service could not publish it. Without this
+    # container nginx crash-loops on "host not found in upstream". Inside the
+    # compose network the service still listens on 8501.
     ports:
-      - "127.0.0.1:8501:8501"
+      - "127.0.0.1:8503:8501"
     # Streamlit's own liveness endpoint: says the server is up, not that the
     # API behind it answers — that is the api service's healthcheck.
     healthcheck:
