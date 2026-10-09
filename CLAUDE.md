@@ -301,10 +301,10 @@ corpus ever ingests untrusted documents — chunk text reaches the code prompt.
       and all three jobs passed on GitHub for the first time on 2026-10-08
       (run 37794741477, commit 113bc04). A `deploy-staging` job exists but is
       skipped until `STAGING_DEPLOY_ENABLED=true` (setup in `DEPLOY.md`)
-- [ ] Docker hardening: health checks on frontend services. Non-root user
-      added 2026-10-09 (UID 10001, model cache moved to the `hf_cache`
-      volume); not yet run on staging, which needs `data/chroma` chowned to
-      10001 — `deploy_ci.sh` does it, a manual deploy must too
+- [ ] Docker hardening — done in code 2026-10-09, not yet run on staging:
+      non-root user (UID 10001, model cache moved to the `hf_cache` volume)
+      and healthchecks on both frontends. Staging needs `data/chroma`
+      chowned to 10001 — `deploy_ci.sh` does it, a manual deploy must too
 - [ ] Re-run RAGAS eval after Phase 3 agents to get updated baseline scores
 - [ ] Frontend v2 (React) — replaces Streamlit, Phase 4 target per roadmap
 - [ ] Scrapers: automate PDF fetching from ANSD, DPEE, BCEAO (World Bank,

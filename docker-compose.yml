@@ -45,6 +45,14 @@ services:
       - .:/app
     ports:
       - "127.0.0.1:8501:8501"
+    # Streamlit's own liveness endpoint: says the server is up, not that the
+    # API behind it answers — that is the api service's healthcheck.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       api:
         condition: service_healthy
@@ -62,6 +70,12 @@ services:
       - .:/app
     ports:
       - "127.0.0.1:8502:8502"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8502/_stcore/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       api:
         condition: service_healthy
