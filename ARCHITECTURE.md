@@ -414,7 +414,7 @@ graph LR
     pub --> api_svc
     pro --> api_svc
     api_svc --> chroma_vol[(./data/chroma\nvolume)]
-    api_svc --> model_vol[(model_cache\nHuggingFace volume)]
+    api_svc --> model_vol[(hf_cache\nHuggingFace volume)]
 ```
 
 | Container | Image | Port | Role |

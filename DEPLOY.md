@@ -58,8 +58,10 @@ git checkout dev
 scp -r "data/chroma" root@VOTRE_IP:/app/data/
 ```
 
-Vérifiez sur le serveur :
+Sur le serveur, donnez l'index à l'utilisateur du conteneur (l'API tourne sous
+l'UID 10001, pas en root, et Chroma écrit dans ce dossier), puis vérifiez :
 ```bash
+chown -R 10001:10001 /app/data/chroma
 ls /app/data/chroma/
 # doit afficher : chroma.sqlite3  db.../
 ```
@@ -248,4 +250,6 @@ df -h
 docker stats
 ```
 
-> Le modèle d'embeddings (2.1 GB) est téléchargé une seule fois et persisté dans un volume Docker (`model_cache`). Les redémarrages suivants sont rapides (~10s).
+> Le modèle d'embeddings (2.1 GB) est téléchargé une seule fois et persisté dans un volume Docker (`hf_cache`). Les redémarrages suivants sont rapides (~10s).
+>
+> Ce volume s'appelait `model_cache` tant que l'image tournait en root. Le premier démarrage après ce changement retélécharge donc le modèle. Une fois l'API saine, l'ancien volume peut être supprimé : `docker volume ls | grep model_cache`, puis `docker volume rm <nom>`.

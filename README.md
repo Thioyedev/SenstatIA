@@ -87,7 +87,8 @@ docker compose up -d
 # Depuis la machine locale après ingestion
 rsync -avz data/chroma/ root@65.109.143.85:/app/data/chroma/
 
-# Sur le serveur
+# Sur le serveur — l'API tourne sous l'UID 10001 et doit pouvoir écrire dans l'index
+chown -R 10001:10001 /app/data/chroma
 docker restart senstat-api
 ```
 

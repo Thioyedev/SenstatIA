@@ -15,7 +15,10 @@ services:
       - CHROMA_PERSIST_DIR=/app/data/chroma
     volumes:
       - ./data/chroma:/app/data/chroma
-      - model_cache:/root/.cache/huggingface
+      # Path must match HF_HOME in the Dockerfile. Renamed from model_cache when
+      # the image stopped running as root: that volume's files are root-owned,
+      # and Docker copies ownership from the image only into a new volume.
+      - hf_cache:/home/senstat/.cache/huggingface
     # Bound to loopback: nginx reaches these over the compose network by service
     # name, so the host port is only for local debugging. Published on 0.0.0.0 it
     # would be internet-reachable — Docker's iptables rules bypass ufw — exposing
@@ -78,4 +81,4 @@ services:
       - api
 
 volumes:
-  model_cache:
+  hf_cache:

@@ -53,6 +53,9 @@ main() {
     git merge --ff-only "$sha"
 
     echo "▶ Building and restarting containers"
+    # The image runs as UID 10001 (Dockerfile) and Chroma writes to its index;
+    # the index arrives by rsync carrying the sender's owner.
+    chown -R 10001:10001 data/chroma
     docker compose up -d --build
     docker image prune -f >/dev/null
 
